@@ -17,9 +17,8 @@ def test_captures_queries(db):
     with QueryCollector() as qc_delete:
         Group.objects.all().delete()
     delete_queries = list(
-        x['sql'] for x in qc_delete.queries
-        if x['sql'].startswith("QUERY = 'DELETE"))
-    assert len(delete_queries) != 0
+        x['sql'] for x in qc_delete.queries if 'DELETE' in x['sql'])
+    assert len(delete_queries) != 0, qc_delete.queries
 
 
 def test_can_specify_fail_limit_and_then_it_fails(db):
