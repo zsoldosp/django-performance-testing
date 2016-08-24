@@ -1,3 +1,4 @@
+import pprint
 import pytest
 from django.contrib.auth.models import Group
 from django_performance_testing.queries import QueryCollector
@@ -35,3 +36,16 @@ def test_can_specify_fail_limit_and_then_it_fails(db):
             list(Group.objects.all())
             list(Group.objects.all())
     assert 'Too many (3) queries (limit: 2)' == str(excinfo.value)
+
+
+def test_can_specify_extra_context_for_error_message(db):
+    extra_context = {'foo': 'bar', 'x': 'y'}
+    qc = QueryCollector(count_limit=0, extra_context=extra_context)
+    qc.queries = ['abc']
+    expected_error_message = 'Too many (1) queries (limit: 0) {}'.format(
+        pprint.pformat(extra_context))
+    assert expected_error_message == qc.get_error_message()
+    with pytest.raises(ValueError) as excinfo:
+        with qc:
+            list(Group.objects.all())
+    assert expected_error_message == str(excinfo.value)
