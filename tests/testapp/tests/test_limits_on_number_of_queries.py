@@ -55,14 +55,14 @@ def test_resets_connection_debugcursor_into_expected_state(db):
     assert connection.force_debug_cursor is False, \
         'before QC with non-debug connection'
     with QueryCollector():
-        pass
+        assert connection.force_debug_cursor is True, 'inside QC'
     assert connection.force_debug_cursor is False, \
         'after QC with non-debug connection'
 
     try:
         connection.force_debug_cursor = True
         with QueryCollector():
-            pass
+            assert connection.force_debug_cursor is True, 'inside QC'
         assert connection.force_debug_cursor is True, \
             'after QC with debug connection'
     finally:
