@@ -8,14 +8,18 @@ class DjangoPerformanceTestingAppConfig(AppConfig):
     name = 'django_performance_testing'
 
     def ready(self):
-        orig_client_get = Client.get
+        orig_client_request = Client.request
 
-        def custom_client_get(client_self, *a, **kw):
+        def custom_client_request(client_self, **request):
             from django.conf import settings
             app_settings = getattr(settings, 'PERFORMANCE_LIMITS', {})
             query_collector_kwargs = app_settings.get(
                 'django.test.client.Client', {})
+            assert 'extra_context' not in query_collector_kwargs
+            extra_context = {'Client.{}'.format(
+                request['REQUEST_METHOD']): request['PATH_INFO']}
+            query_collector_kwargs['extra_context'] = extra_context
             with QueryCollector(**query_collector_kwargs):
-                return orig_client_get(client_self, *a, **kw)
+                return orig_client_request(client_self, **request)
 
-        Client.get = custom_client_get
+        Client.request = custom_client_request
