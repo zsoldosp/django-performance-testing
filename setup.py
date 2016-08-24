@@ -22,7 +22,7 @@ readme = open('README.rst').read()
 description = "Performance testing tools for Django"
 
 setup(
-    name='django_performance_testing',
+    name='django-performance-testing',
     version=version,
     description=description,
     long_description=readme,

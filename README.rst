@@ -31,5 +31,6 @@ Release Notes
   * supports Django 1.8, 1.9, 1.10 on python 2.7 and 3.4
 
 
-.. _PyPi: http://pypi.python.org/simple/django_performance_testing
+.. _CI Builder: https://travis-ci.com/PaesslerAG/django-performance-testing
+.. _PyPi: http://pypi.python.org/simple/django-performance-testing
 .. _Git: https://github.com/PaesslerAG/django-performance-testing
