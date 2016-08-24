@@ -49,3 +49,22 @@ def test_can_specify_extra_context_for_error_message(db):
         with qc:
             list(Group.objects.all())
     assert expected_error_message == str(excinfo.value)
+
+
+def test_resets_connection_debugcursor_into_expected_state(db):
+    from django.db import connection
+    assert connection.force_debug_cursor is False, \
+        'before QC with non-debug connection'
+    with QueryCollector():
+        pass
+    assert connection.force_debug_cursor is False, \
+        'after QC with non-debug connection'
+
+    try:
+        connection.force_debug_cursor = True
+        with QueryCollector():
+            pass
+        assert connection.force_debug_cursor is True, \
+            'after QC with debug connection'
+    finally:
+        connection.force_debug_cursor = False

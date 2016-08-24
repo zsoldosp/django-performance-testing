@@ -11,11 +11,12 @@ class QueryCollector(object):
     def __enter__(self):
         self.queries = []
         self.nr_of_queries_when_entering = len(connection.queries)
-        # TODO: need to assert it's back to normal
+        self.orig_force_debug_cursor = connection.force_debug_cursor
         connection.force_debug_cursor = True
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        connection.force_debug_cursor = self.orig_force_debug_cursor
         self.queries = connection.queries[self.nr_of_queries_when_entering:]
         if self.count_limit is not None:
             if len(self.queries) > self.count_limit:
