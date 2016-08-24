@@ -30,7 +30,8 @@ lint:
 	flake8 django_performance_testing tests
 
 test:
-	python manage.py test testapp --traceback
+	#python manage.py test testapp --traceback
+	pytest
 
 clean-tox:
 	if [[ -d .tox ]]; then rm -r .tox; fi
