@@ -67,3 +67,13 @@ def test_resets_connection_debugcursor_into_expected_state(db):
             'after QC with debug connection'
     finally:
         connection.force_debug_cursor = False
+
+
+def test_ctx_managers_can_be_nested(db):
+    with QueryCollector(count_limit=3):
+        list(Group.objects.all())
+        list(Group.objects.all())
+        with pytest.raises(ValueError) as excinfo:
+            with QueryCollector(count_limit=0):
+                list(Group.objects.all())
+        assert 'Too many (1) queries (limit: 0)' == str(excinfo.value)
