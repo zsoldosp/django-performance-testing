@@ -14,7 +14,6 @@ class QueryCollector(object):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # TODO: nested decorators/ctx managers
         self.queries = connection.queries[self.nr_of_queries_when_entering:]
         if self.count_limit is not None:
             nr_of_queries = len(self.queries)
