@@ -29,3 +29,14 @@ class QueryCollector(object):
                 pprint.pformat(self.extra_context))
         return 'Too many ({}) queries (limit: {}){}'.format(
             len(self.queries), self.count_limit, extra_context_msg)
+
+_query_token_to_classification = {
+    'SELECT': 'read',
+}
+
+
+def classify_query(sql):
+    without_query_prefix = sql.split(' = ')[1]
+    without_repr_quotes = without_query_prefix.split('\'')[1]
+    query_type_token = without_repr_quotes.split(' ')[0]
+    return _query_token_to_classification[query_type_token]
