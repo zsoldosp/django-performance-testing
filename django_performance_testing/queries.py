@@ -33,6 +33,7 @@ class QueryCollector(object):
 _query_token_to_classification = {
     'SELECT': 'read',
     'INSERT': 'write',
+    'UPDATE': 'write',
 }
 
 

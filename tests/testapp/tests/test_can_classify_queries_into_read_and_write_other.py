@@ -18,3 +18,12 @@ def test_can_classify_select(sql):
 ], ids=['py2', 'py3'])
 def test_can_classify_insert(sql):
     assert 'write' == classify_query(sql)
+
+
+@pytest.mark.parametrize('sql', [
+    'QUERY = \'UPDATE "auth_group" SET "name" = %s\' - PARAMS = (\'bar\',)',  # noqa
+    'QUERY = u\'UPDATE "auth_group" SET "name" = %s\' - PARAMS = (\'bar\',)',  # noqa
+
+], ids=['py2', 'py3'])
+def test_can_classify_update(sql):
+    assert 'write' == classify_query(sql)
