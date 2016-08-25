@@ -27,3 +27,12 @@ def test_can_classify_insert(sql):
 ], ids=['py2', 'py3'])
 def test_can_classify_update(sql):
     assert 'write' == classify_query(sql)
+
+
+@pytest.mark.parametrize('sql', [
+    'QUERY = \'DELETE FROM "auth_group" WHERE "auth_group"."id" IN (%s)\' - PARAMS = (1,)',  # noqa
+    'QUERY = u\'DELETE FROM "auth_group" WHERE "auth_group"."id" IN (%s)\' - PARAMS = (1,)',  # noqa
+
+], ids=['py2', 'py3'])
+def test_can_classify_delete(sql):
+    assert 'write' == classify_query(sql)

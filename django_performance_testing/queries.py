@@ -34,6 +34,7 @@ _query_token_to_classification = {
     'SELECT': 'read',
     'INSERT': 'write',
     'UPDATE': 'write',
+    'DELETE': 'write',
 }
 
 
