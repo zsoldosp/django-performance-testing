@@ -7,7 +7,7 @@ from django_performance_testing.queries import classify_query
     'QUERY = \'SELECT "auth_group"."id", "auth_group"."name" FROM "auth_group"\' - PARAMS = ()',  # noqa
 
 ], ids=['py2', 'py3'])
-def test_can_parse_select(sql):
+def test_can_classify_select(sql):
     assert 'read' == classify_query(sql)
 
 
@@ -16,5 +16,5 @@ def test_can_parse_select(sql):
     'QUERY = u\'INSERT INTO "auth_group" ("name") VALUES (%s)\' - PARAMS = (\'foo\',)',  # noqa
 
 ], ids=['py2', 'py3'])
-def test_can_parse_insert(sql):
+def test_can_classify_insert(sql):
     assert 'write' == classify_query(sql)
