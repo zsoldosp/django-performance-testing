@@ -4,9 +4,29 @@ from django.db import connection
 
 class QueryCollector(object):
 
-    def __init__(self, count_limit=None, extra_context=None):
+    __ids = set()
+
+    def __init__(self, id_=None, count_limit=None, extra_context=None):
         self.count_limit = count_limit
         self.extra_context = extra_context
+        self.id_ = id_
+        self.ensure_id_is_unique()
+
+    def ensure_id_is_unique(self):
+        if self.should_have_unique_id():
+            if self.id_ in self.__ids:
+                id_ = self.id_
+                self.id_ = None
+                raise TypeError(
+                        'There is already a collector named {!r}'.format(id_))
+            self.__ids.add(self.id_)
+
+    def __del__(self):
+        if self.should_have_unique_id():
+            self.__ids.remove(self.id_)
+
+    def should_have_unique_id(self):
+        return self.id_ is not None
 
     def __enter__(self):
         self.queries = []
