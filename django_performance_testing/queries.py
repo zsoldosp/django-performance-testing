@@ -67,3 +67,42 @@ def classify_query(sql):
     without_repr_quotes = without_query_prefix.split('\'')[1]
     query_type_token = without_repr_quotes.split(' ')[0]
     return _query_token_to_classification[query_type_token]
+
+
+class QueryBatchLimit(object):
+    collector_cls = QueryCollector
+
+    def __init__(self, collector_id=None):
+        self.collector_id = collector_id
+        if self.is_anonymous():
+            self.collector = self.collector_cls()
+        else:
+            self.connect_for_results()
+            self.collector = None
+
+    def __enter__(self):
+        if self.is_anonymous():
+            self.connect_for_results()
+        return self
+
+    def connect_for_results(self):
+        result_collected.connect(self.result_collected_handler)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.is_anonymous():
+            result_collected.disconnect(self.result_collected_handler)
+
+    def is_anonymous(self):
+        return self.collector_id is None
+
+    def result_collected_handler(self, signal, sender, result, extra_context):
+        if not self.is_anonymous():
+            if self.collector_id != sender.id_:
+                return
+        else:
+            if self.collector != sender:
+                return
+        self.handle_result(result=result, extra_context=extra_context)
+
+    def handle_result(self, result, extra_context):
+        pass

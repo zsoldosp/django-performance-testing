@@ -64,3 +64,106 @@ class TestCollectors(object):
         params = captured.calls[0]
         assert params['sender'] == collector
         assert params['extra_context'] == extra_context
+
+
+class TestLimits(object):
+    def test_limit_knows_its_collector(self, limit_cls):
+        assert hasattr(limit_cls, 'collector_cls')
+        assert isinstance(limit_cls.collector_cls, type)
+
+    def test_cannot_create_with_id_not_matching_a_collector(self, limit_cls):
+        collector = limit_cls.collector_cls(id_='foo')  # noqa: F841
+        limit = limit_cls(collector_id='foo')
+        assert limit.collector_id == 'foo'
+        assert limit.collector is None
+
+    def test_creating_without_id_creates_its_own_collector(self, limit_cls):
+        limit = limit_cls()
+        assert isinstance(limit.collector, limit_cls.collector_cls)
+        assert limit.collector_id is None
+
+
+class TestLimitsListeningOnSignals(object):
+
+    def get_call_capturing_limit(self, limit_cls, **kw):
+
+        class CallCapturingLimit(limit_cls):
+            calls = []
+
+            def handle_result(self, result, extra_context):
+                self.calls.append(
+                    dict(result=result, extra_context=extra_context))
+
+        return CallCapturingLimit(**kw)
+
+    def test_listening_by_id_is_always_active(self, limit_cls):
+        collector = limit_cls.collector_cls(id_='listen by id')
+        limit = self.get_call_capturing_limit(
+            limit_cls=limit_cls, collector_id='listen by id')
+        result_collected.send(
+            sender=collector, result=0,
+            extra_context={'before': 'context manager'})
+        with limit:
+            result_collected.send(
+                sender=collector, result=1,
+                extra_context={'inside': 'context manager'})
+        result_collected.send(
+            sender=collector, result=2,
+            extra_context={'after': 'context manager'})
+
+        assert len(limit.calls) == 3
+        assert limit.calls == [
+            {'result': 0, 'extra_context': {'before': 'context manager'}},
+            {'result': 1, 'extra_context': {'inside': 'context manager'}},
+            {'result': 2, 'extra_context': {'after': 'context manager'}},
+        ]
+
+    def test_without_id_only_listens_while_a_context_manager(self, limit_cls):
+        limit = self.get_call_capturing_limit(limit_cls=limit_cls)
+        assert limit.collector_id is None
+        result_collected.send(
+            sender=limit.collector, result=0,
+            extra_context={'before': 'context manager'})
+        with limit:
+            result_collected.send(
+                sender=limit.collector, result=1,
+                extra_context={'inside': 'context manager'})
+        result_collected.send(
+            sender=limit.collector, result=2,
+            extra_context={'after': 'context manager'})
+
+        assert len(limit.calls) == 1
+        assert limit.calls == [
+            {'result': 1, 'extra_context': {'inside': 'context manager'}},
+        ]
+
+    def test_only_listens_to_its_collector_named(self, limit_cls):
+        listened_to = limit_cls.collector_cls(id_='has listener')
+        unlistened = limit_cls.collector_cls(id_='no listeners')
+        limit = self.get_call_capturing_limit(
+            limit_cls=limit_cls, collector_id='has listener')
+        result_collected.send(
+            sender=listened_to, result=5, extra_context={'should': 'receive'})
+        result_collected.send(
+            sender=unlistened, result=6, extra_context={'not': 'received'})
+        assert len(limit.calls) == 1
+        assert limit.calls == [
+            {'result': 5, 'extra_context': {'should': 'receive'}},
+        ]
+
+    def test_only_listens_to_its_collector_anonymous(self, limit_cls):
+        limit = self.get_call_capturing_limit(limit_cls=limit_cls)
+        listened_to = limit.collector
+        unlistened = limit_cls.collector_cls(id_='no listeners')
+        with limit:
+            result_collected.send(
+                sender=listened_to, result=99,
+                extra_context={'should': 'receive'})
+            result_collected.send(
+                sender=unlistened, result=55,
+                extra_context={'not': 'received'})
+        assert len(limit.calls) == 1
+        assert limit.calls == [
+            {'result': 99, 'extra_context': {'should': 'receive'}},
+        ]
+# TODO: what to do w/ reports, where one'd listen on more than one collector?
