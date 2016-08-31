@@ -14,6 +14,7 @@ class BaseLimit(object):
     def __enter__(self):
         if self.is_anonymous():
             self.connect_for_results()
+            self.collector.__enter__()
         return self
 
     def connect_for_results(self):
@@ -22,6 +23,7 @@ class BaseLimit(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.is_anonymous():
             result_collected.disconnect(self.result_collected_handler)
+            self.collector.__exit__(exc_type, exc_val, exc_tb)
 
     def is_anonymous(self):
         return self.collector_id is None

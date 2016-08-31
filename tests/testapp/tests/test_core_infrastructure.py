@@ -1,3 +1,4 @@
+from unittest.mock import patch
 import pytest
 from django_performance_testing.signals import result_collected
 
@@ -166,4 +167,15 @@ class TestLimitsListeningOnSignals(object):
         assert limit.calls == [
             {'result': 99, 'extra_context': {'should': 'receive'}},
         ]
+
+    def test_anonymous_enter_exit_calls_same_on_its_collector(self, limit_cls):
+        limit = limit_cls()
+        with patch.object(limit.collector, '__enter__') as enter_mock:
+            with patch.object(limit.collector, '__exit__') as exit_mock:
+                enter_mock.assert_not_called()
+                exit_mock.assert_not_called()
+                with limit:
+                    enter_mock.assert_called_once_with()
+                exit_mock.assert_called_once_with(None, None, None)
+
 # TODO: what to do w/ reports, where one'd listen on more than one collector?
