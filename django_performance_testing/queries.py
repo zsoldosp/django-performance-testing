@@ -1,5 +1,6 @@
 import pprint
 from django.db import connection
+from django_performance_testing.signals import result_collected
 
 
 class QueryCollector(object):
@@ -38,6 +39,9 @@ class QueryCollector(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         connection.force_debug_cursor = self.orig_force_debug_cursor
         self.queries = connection.queries[self.nr_of_queries_when_entering:]
+        result_collected.send(
+            sender=self, result=len(self.queries),
+            extra_context=self.extra_context)
         if self.count_limit is not None:
             if len(self.queries) > self.count_limit:
                 raise ValueError(self.get_error_message())
