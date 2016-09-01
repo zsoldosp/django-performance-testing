@@ -8,8 +8,7 @@ class QueryCollector(object):
 
     _ids = set()
 
-    def __init__(self, id_=None, count_limit=None, extra_context=None):
-        self.count_limit = count_limit
+    def __init__(self, id_=None, extra_context=None):
         self.extra_context = extra_context
         self.id_ = id_
         self.ensure_id_is_unique()
@@ -43,17 +42,6 @@ class QueryCollector(object):
         result_collected.send(
             sender=self, result=len(self.queries),
             extra_context=self.extra_context)
-        if self.count_limit is not None:
-            if len(self.queries) > self.count_limit:
-                raise ValueError(self.get_error_message())
-
-    def get_error_message(self):
-        extra_context_msg = ''
-        if self.extra_context:
-            extra_context_msg = ' {}'.format(
-                pprint.pformat(self.extra_context))
-        return 'Too many ({}) queries (limit: {}){}'.format(
-            len(self.queries), self.count_limit, extra_context_msg)
 
 _query_token_to_classification = {
     'SELECT': 'read',
