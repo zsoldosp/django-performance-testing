@@ -1,15 +1,16 @@
+import copy
 import pprint
 from django.db import connection
 from django_performance_testing.signals import result_collected
 from django_performance_testing.core import BaseLimit
+from django_performance_testing import context
 
 
 class QueryCollector(object):
 
     _ids = set()
 
-    def __init__(self, id_=None, extra_context=None):
-        self.extra_context = extra_context
+    def __init__(self, id_=None):
         self.id_ = id_
         self.ensure_id_is_unique()
 
@@ -41,7 +42,7 @@ class QueryCollector(object):
         self.queries = connection.queries[self.nr_of_queries_when_entering:]
         result_collected.send(
             sender=self, result=len(self.queries),
-            extra_context=self.extra_context)
+            extra_context=copy.deepcopy(context.current.data))
 
 _query_token_to_classification = {
     'SELECT': 'read',

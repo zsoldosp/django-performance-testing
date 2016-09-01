@@ -24,4 +24,5 @@ class Context(object):
         if not values:
             self.data.pop(key)
 
-# current = Context()
+
+current = Context()

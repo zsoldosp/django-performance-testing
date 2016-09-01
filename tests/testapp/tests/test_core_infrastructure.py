@@ -4,6 +4,7 @@ except:
     from mock import patch
 import pytest
 from django_performance_testing.signals import result_collected
+from testapp.test_ctx_managers import override_current_context
 
 
 class capture_result_collected(object):
@@ -58,16 +59,22 @@ class TestCollectors(object):
                 pass
             assert len(captured.calls) == 2
 
-    def test_signal_passes_along_extra_context(self, collector_cls):
-        extra_context = {'extra': 'context'}
-        with capture_result_collected() as captured:
-            assert captured.calls == []
-            with collector_cls(extra_context=extra_context) as collector:
-                pass
+    def test_signal_passes_along_current_contexts_copy(self, collector_cls):
+        with override_current_context() as ctx:
+            ctx.enter(key='extra', value='context')
+            with capture_result_collected() as captured:
+                assert captured.calls == []
+                with collector_cls() as collector:
+                    pass
         assert len(captured.calls) == 1
         params = captured.calls[0]
         assert params['sender'] == collector
-        assert params['extra_context'] == extra_context
+        received_context = params['extra_context']
+        assert received_context == {'extra': ['context']}
+        assert received_context == ctx.data
+        assert id(received_context) != id(ctx.data)
+        assert received_context['extra'] == ctx.data['extra']
+        assert id(received_context['extra']) != id(ctx.data['extra'])
 
 
 class TestLimits(object):

@@ -19,7 +19,7 @@ def test_can_specify_limits_through_settings_for_django_test_client(
         getattr(client, kwparams['method'].lower())(url)
     expected_error_message = \
         'Too many ({queries}) queries (limit: {limit}) ' \
-        '{{\'Client.request\': \'{method} {url}\'}}'.format(
+        '{{\'Client.request\': [\'{method} {url}\']}}'.format(
             url=url,
             **kwparams
         )

@@ -2,6 +2,7 @@ import pytest
 from django.contrib.auth.models import Group
 from django_performance_testing.queries import QueryCollector, QueryBatchLimit
 from django_performance_testing.core import BaseLimit
+from testapp.test_ctx_managers import override_current_context
 
 
 class TestQueryBatchLimit(object):
@@ -37,10 +38,11 @@ class TestQueryBatchLimit(object):
 
     def test_integration_test_with_db(self, db):
         with pytest.raises(ValueError) as excinfo:
-            with QueryBatchLimit(count_limit=2) as limit:
-                limit.collector.extra_context = {'some': 'context'}
-                list(Group.objects.all())
-                Group.objects.update(name='bar')
-                Group.objects.create(name='group')
-        assert 'Too many (3) queries (limit: 2) {\'some\': \'context\'}' == \
+            with override_current_context() as ctx:
+                with QueryBatchLimit(count_limit=2):
+                    ctx.enter(key='some', value='context')
+                    list(Group.objects.all())
+                    Group.objects.update(name='bar')
+                    Group.objects.create(name='group')
+        assert 'Too many (3) queries (limit: 2) {\'some\': [\'context\']}' == \
             str(excinfo.value)

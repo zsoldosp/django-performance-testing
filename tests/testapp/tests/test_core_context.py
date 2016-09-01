@@ -45,3 +45,6 @@ class TestContext(object):
         assert str(excinfo.value) == \
             'cannot exit not entered context - value mismatch ' \
             '(exit: 1, enter: 2)'
+
+    def test_there_is_a_singleton_current(self):
+        assert isinstance(context.current, Context)
