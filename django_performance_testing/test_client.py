@@ -1,15 +1,13 @@
 from django.test.client import Client
-from django.utils import six
 from django_performance_testing.queries import QueryCollector, QueryBatchLimit
 
 orig_client_request = Client.request
 
 
 def client_request_that_fails_for_too_many_queries(client_self, **request):
-    path_info_as_text = six.text_type(request['PATH_INFO'])
     extra_context = {
         'Client.request': '{} {}'.format(
-            request['REQUEST_METHOD'], path_info_as_text)
+            request['REQUEST_METHOD'], request['PATH_INFO'])
     }
     client_self._querycount_collector.extra_context = extra_context
     with client_self._querycount_collector:
