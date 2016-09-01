@@ -22,8 +22,8 @@ class BaseLimit(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.is_anonymous():
-            result_collected.disconnect(self.result_collected_handler)
             self.collector.__exit__(exc_type, exc_val, exc_tb)
+            result_collected.disconnect(self.result_collected_handler)
 
     def is_anonymous(self):
         return self.collector_id is None

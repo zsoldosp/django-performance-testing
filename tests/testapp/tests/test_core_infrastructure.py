@@ -129,14 +129,15 @@ class TestLimitsListeningOnSignals(object):
             result_collected.send(
                 sender=limit.collector, result=1,
                 extra_context={'inside': 'context manager'})
+            assert len(limit.calls) == 1
+            assert limit.calls == [
+                {'result': 1, 'extra_context': {'inside': 'context manager'}},
+            ]
+        limit.calls = []
         result_collected.send(
             sender=limit.collector, result=2,
             extra_context={'after': 'context manager'})
-
-        assert len(limit.calls) == 1
-        assert limit.calls == [
-            {'result': 1, 'extra_context': {'inside': 'context manager'}},
-        ]
+        assert len(limit.calls) == 0
 
     def test_only_listens_to_its_collector_named(self, limit_cls):
         listened_to = limit_cls.collector_cls(id_='has listener')
@@ -163,10 +164,10 @@ class TestLimitsListeningOnSignals(object):
             result_collected.send(
                 sender=unlistened, result=55,
                 extra_context={'not': 'received'})
-        assert len(limit.calls) == 1
-        assert limit.calls == [
-            {'result': 99, 'extra_context': {'should': 'receive'}},
-        ]
+            assert len(limit.calls) == 1
+            assert limit.calls == [
+                {'result': 99, 'extra_context': {'should': 'receive'}},
+            ]
 
     def test_anonymous_enter_exit_calls_same_on_its_collector(self, limit_cls):
         limit = limit_cls()
