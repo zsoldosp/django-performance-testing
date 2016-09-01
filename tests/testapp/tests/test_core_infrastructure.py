@@ -195,6 +195,12 @@ class TestLimitsListeningOnSignals(object):
                     enter_mock.assert_called_once_with()
                 exit_mock.assert_called_once_with(None, None, None)
 
+    def test_anonymous_quits_from_signal_after_collector_exit(self, limit_cls):
+        limit = self.get_call_capturing_limit(limit_cls=limit_cls)
+        with limit:
+            pass
+        assert len(limit.calls) == 1
+
 
 class TestCreatingSettingsBasedLimits(object):
 
