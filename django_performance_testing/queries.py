@@ -73,9 +73,9 @@ def classify_query(sql):
 class QueryBatchLimit(BaseLimit):
     collector_cls = QueryCollector
 
-    def __init__(self, count_limit=None, collector_id=None):
-        super(QueryBatchLimit, self).__init__(collector_id=collector_id)
-        self.count_limit = count_limit
+    @property
+    def count_limit(self):
+        return self.data['count_limit']
 
     def handle_result(self, result, extra_context):
         if result <= self.count_limit:

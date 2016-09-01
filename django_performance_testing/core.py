@@ -1,10 +1,14 @@
+from django.conf import settings
 from django_performance_testing.signals import result_collected
 
 
 class BaseLimit(object):
 
-    def __init__(self, collector_id=None):
+    def __init__(self, collector_id=None, settings_based=False, **data):
+        self.settings_based = settings_based
+        self._data = data
         self.collector_id = collector_id
+        self._validate_data()
         if self.is_anonymous():
             self.collector = self.collector_cls()
         else:
@@ -13,6 +17,24 @@ class BaseLimit(object):
                     'There is no collector named {!r}'.format(collector_id))
             self.connect_for_results()
             self.collector = None
+
+    def _validate_data(self):
+        if not self.settings_based:
+            return
+        if self._data:
+            raise TypeError(
+                'Either provide data (kwargs) or settings_based, '
+                'not both.')
+        if self.is_anonymous():
+            raise TypeError(
+                'Can only be settings based when collector_id is provided.')
+
+    @property
+    def data(self):
+        if not self.settings_based:
+            return self._data
+        app_settings = getattr(settings, 'PERFORMANCE_LIMITS', {})
+        return app_settings.get(self.collector_id, {})
 
     def __enter__(self):
         if self.is_anonymous():

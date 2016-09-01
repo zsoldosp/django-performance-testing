@@ -188,4 +188,36 @@ class TestLimitsListeningOnSignals(object):
                     enter_mock.assert_called_once_with()
                 exit_mock.assert_called_once_with(None, None, None)
 
+
+class TestCreatingSettingsBasedLimits(object):
+
+    def test_cannot_provide_both_data_and_settings_based_true(self, limit_cls):
+        collector = limit_cls.collector_cls(id_='some id')  # noqa: F841
+        with pytest.raises(TypeError) as excinfo:
+            limit_cls(collector_id='some id', data={}, settings_based=True)
+        assert 'Either provide data (kwargs) or settings_based, not both.' == \
+            str(excinfo.value)
+
+    def test_values_based_on_setting_runtime_value(self, limit_cls, settings):
+        id_ = 'runtime settings based limit'
+        collector = limit_cls.collector_cls(id_=id_)  # noqa: F841
+        limit = limit_cls(collector_id=id_, settings_based=True)
+        settings.PERFORMANCE_LIMITS = {}
+        assert limit.data == {}
+        settings.PERFORMANCE_LIMITS = {id_: {'data': 'foo'}}
+        assert limit.data == {'data': 'foo'}
+        settings.PERFORMANCE_LIMITS = {id_: {'whatever': 'bar'}}
+        assert limit.data == {'whatever': 'bar'}
+
+    def test_when_providing_kwargs_data_that_is_obtained(self, limit_cls):
+        collector = limit_cls.collector_cls(id_='kwarg data')  # noqa: F841
+        limit = limit_cls(collector_id='kwarg data', foo='bar')
+        assert limit.data == {'foo': 'bar'}
+
+    def test_without_collector_id_cannot_be_settings_based(self, limit_cls):
+        with pytest.raises(TypeError) as excinfo:
+            limit_cls(settings_based=True)
+        assert 'Can only be settings based when collector_id is provided.' == \
+            str(excinfo.value)
+
 # TODO: what to do w/ reports, where one'd listen on more than one collector?
