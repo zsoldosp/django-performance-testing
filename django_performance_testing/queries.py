@@ -73,5 +73,18 @@ def classify_query(sql):
 class QueryBatchLimit(BaseLimit):
     collector_cls = QueryCollector
 
+    def __init__(self, count_limit=None, collector_id=None):
+        super(QueryBatchLimit, self).__init__(collector_id=collector_id)
+        self.count_limit = count_limit
+
     def handle_result(self, result, extra_context):
-        pass
+        if result <= self.count_limit:
+            return
+
+        extra_context_msg = ''
+        if extra_context:
+            extra_context_msg = ' {}'.format(
+                pprint.pformat(extra_context))
+        error_msg = 'Too many ({}) queries (limit: {}){}'.format(
+            result, self.count_limit, extra_context_msg)
+        raise ValueError(error_msg)
