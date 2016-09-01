@@ -12,8 +12,10 @@ def client_request_that_fails_for_too_many_queries(client_self, **request):
         'django.test.client.Client', {})
     assert 'extra_context' not in query_collector_kwargs
     path_info_as_text = six.text_type(request['PATH_INFO'])
-    extra_context = {'Client.{}'.format(
-        request['REQUEST_METHOD']): path_info_as_text}
+    extra_context = {
+        'Client.request': '{} {}'.format(
+            request['REQUEST_METHOD'], path_info_as_text)
+    }
     query_collector_kwargs['extra_context'] = extra_context
     with QueryCollector(**query_collector_kwargs):
         return orig_client_request(client_self, **request)
