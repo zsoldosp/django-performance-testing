@@ -2,6 +2,7 @@ import pytest
 from django.contrib.auth.models import Group
 from django_performance_testing.queries import QueryCollector, QueryBatchLimit
 from django_performance_testing.core import BaseLimit
+from django_performance_testing.signals import result_collected
 
 
 def test_captures_queries(db):
@@ -83,10 +84,19 @@ def test_resets_connection_debugcursor_into_expected_state(db):
 
 
 def test_ctx_managers_can_be_nested(db):
-    with QueryCollector(count_limit=3):
-        list(Group.objects.all())
-        list(Group.objects.all())
-        with pytest.raises(ValueError) as excinfo:
-            with QueryCollector(count_limit=0):
+    captured = {}
+
+    def capture_signals(signal, sender, result, extra_context):
+        captured.setdefault(sender, [])
+        captured[sender].append(result)
+
+    result_collected.connect(capture_signals)
+    try:
+        with QueryCollector() as outer:
+            list(Group.objects.all())
+            list(Group.objects.all())
+            with QueryCollector() as inner:
                 list(Group.objects.all())
-        assert 'Too many (1) queries (limit: 0)' == str(excinfo.value)
+        assert {outer: [3], inner: [1]} == captured
+    finally:
+        result_collected.disconnect(capture_signals)
