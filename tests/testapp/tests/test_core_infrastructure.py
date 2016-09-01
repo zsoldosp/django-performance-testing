@@ -1,4 +1,7 @@
-from unittest.mock import patch
+try:
+    from unittest.mock import patch
+except:
+    from mock import patch
 import pytest
 from django_performance_testing.signals import result_collected
 
