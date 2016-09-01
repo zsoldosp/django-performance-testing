@@ -1,5 +1,6 @@
 import pytest
 from django.contrib.auth.models import Group
+from django.db import connection
 from django_performance_testing.queries import QueryCollector, QueryBatchLimit
 from django_performance_testing.core import BaseLimit
 from django_performance_testing.signals import result_collected
@@ -24,7 +25,6 @@ class TestQueryCollector(object):
         assert len(delete_queries) != 0, qc_delete.queries
 
     def test_resets_connection_debugcursor_into_expected_state(self, db):
-        from django.db import connection
         assert connection.force_debug_cursor is False, \
             'before QC with non-debug connection'
         with QueryCollector():
