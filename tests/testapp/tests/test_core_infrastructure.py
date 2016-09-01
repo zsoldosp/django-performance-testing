@@ -75,11 +75,17 @@ class TestLimits(object):
         assert hasattr(limit_cls, 'collector_cls')
         assert isinstance(limit_cls.collector_cls, type)
 
-    def test_cannot_create_with_id_not_matching_a_collector(self, limit_cls):
-        collector = limit_cls.collector_cls(id_='foo')  # noqa: F841
-        limit = limit_cls(collector_id='foo')
-        assert limit.collector_id == 'foo'
+    def test_creating_with_id_doesnt_create_own_collector(self, limit_cls):
+        collector = limit_cls.collector_cls(id_='bar')  # noqa: F841
+        limit = limit_cls(collector_id='bar')
+        assert limit.collector_id == 'bar'
         assert limit.collector is None
+
+    def test_cannot_create_with_id_not_matching_a_collector(self, limit_cls):
+        with pytest.raises(TypeError) as excinfo:
+            limit_cls(collector_id='no such collector')
+        assert 'There is no collector named \'no such collector\'' in \
+            str(excinfo.value)
 
     def test_creating_without_id_creates_its_own_collector(self, limit_cls):
         limit = limit_cls()

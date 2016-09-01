@@ -8,6 +8,9 @@ class BaseLimit(object):
         if self.is_anonymous():
             self.collector = self.collector_cls()
         else:
+            if self.collector_id not in self.collector_cls._ids:
+                raise TypeError(
+                    'There is no collector named {!r}'.format(collector_id))
             self.connect_for_results()
             self.collector = None
 
