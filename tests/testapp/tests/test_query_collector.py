@@ -42,7 +42,7 @@ class TestQueryCollector(object):
     def test_ctx_managers_can_be_nested(self, db):
         captured = {}
 
-        def capture_signals(signal, sender, result, extra_context):
+        def capture_signals(signal, sender, result, context):
             captured.setdefault(sender, [])
             captured[sender].append(result)
 

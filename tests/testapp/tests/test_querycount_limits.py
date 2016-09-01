@@ -14,25 +14,25 @@ class TestQueryBatchLimit(object):
 
     def test_when_exactly_limit_no__error(self):
         limit = QueryBatchLimit(count_limit=1)
-        limit.handle_result(result=1, extra_context=None)
+        limit.handle_result(result=1, context=None)
         assert True  # no exception raised
 
     def test_when_below_limit_no__error(self):
         limit = QueryBatchLimit(count_limit=3)
-        limit.handle_result(result=0, extra_context=None)
+        limit.handle_result(result=0, context=None)
         assert True  # no exception raised
 
     def test_when_above_limit_it_fails_with_meaningful_error_message(self):
         limit = QueryBatchLimit(count_limit=2)
         with pytest.raises(ValueError) as excinfo:
-            limit.handle_result(result=3, extra_context=None)
+            limit.handle_result(result=3, context=None)
         assert 'Too many (3) queries (limit: 2)' == str(excinfo.value)
 
-    def test_given_extra_context_it_is_included_in_error_message(self):
+    def test_given_context_it_is_included_in_error_message(self):
         limit = QueryBatchLimit(count_limit=3)
         with pytest.raises(ValueError) as excinfo:
             limit.handle_result(
-                result=4, extra_context={'extra': 'context'})
+                result=4, context={'extra': 'context'})
         assert 'Too many (4) queries (limit: 3) {\'extra\': \'context\'}' == \
             str(excinfo.value)
 

@@ -14,10 +14,10 @@ class capture_result_collected(object):
         result_collected.connect(self.result_collected_handler)
         return self
 
-    def result_collected_handler(self, signal, sender, result, extra_context):
+    def result_collected_handler(self, signal, sender, result, context):
         self.calls.append(dict(
             sender=sender, signal=signal, result=result,
-            extra_context=extra_context))
+            context=context))
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         result_collected.disconnect(self.result_collected_handler)
@@ -69,7 +69,7 @@ class TestCollectors(object):
         assert len(captured.calls) == 1
         params = captured.calls[0]
         assert params['sender'] == collector
-        received_context = params['extra_context']
+        received_context = params['context']
         assert received_context == {'extra': ['context']}
         assert received_context == ctx.data
         assert id(received_context) != id(ctx.data)
@@ -107,9 +107,9 @@ class TestLimitsListeningOnSignals(object):
         class CallCapturingLimit(limit_cls):
             calls = []
 
-            def handle_result(self, result, extra_context):
+            def handle_result(self, result, context):
                 self.calls.append(
-                    dict(result=result, extra_context=extra_context))
+                    dict(result=result, context=context))
 
         return CallCapturingLimit(**kw)
 
@@ -119,20 +119,20 @@ class TestLimitsListeningOnSignals(object):
             limit_cls=limit_cls, collector_id='listen by id')
         result_collected.send(
             sender=collector, result=0,
-            extra_context={'before': 'context manager'})
+            context={'before': 'context manager'})
         with limit:
             result_collected.send(
                 sender=collector, result=1,
-                extra_context={'inside': 'context manager'})
+                context={'inside': 'context manager'})
         result_collected.send(
             sender=collector, result=2,
-            extra_context={'after': 'context manager'})
+            context={'after': 'context manager'})
 
         assert len(limit.calls) == 3
         assert limit.calls == [
-            {'result': 0, 'extra_context': {'before': 'context manager'}},
-            {'result': 1, 'extra_context': {'inside': 'context manager'}},
-            {'result': 2, 'extra_context': {'after': 'context manager'}},
+            {'result': 0, 'context': {'before': 'context manager'}},
+            {'result': 1, 'context': {'inside': 'context manager'}},
+            {'result': 2, 'context': {'after': 'context manager'}},
         ]
 
     def test_without_id_only_listens_while_a_context_manager(self, limit_cls):
@@ -140,19 +140,19 @@ class TestLimitsListeningOnSignals(object):
         assert limit.collector_id is None
         result_collected.send(
             sender=limit.collector, result=0,
-            extra_context={'before': 'context manager'})
+            context={'before': 'context manager'})
         with limit:
             result_collected.send(
                 sender=limit.collector, result=1,
-                extra_context={'inside': 'context manager'})
+                context={'inside': 'context manager'})
             assert len(limit.calls) == 1
             assert limit.calls == [
-                {'result': 1, 'extra_context': {'inside': 'context manager'}},
+                {'result': 1, 'context': {'inside': 'context manager'}},
             ]
         limit.calls = []
         result_collected.send(
             sender=limit.collector, result=2,
-            extra_context={'after': 'context manager'})
+            context={'after': 'context manager'})
         assert len(limit.calls) == 0
 
     def test_only_listens_to_its_collector_named(self, limit_cls):
@@ -161,12 +161,12 @@ class TestLimitsListeningOnSignals(object):
         limit = self.get_call_capturing_limit(
             limit_cls=limit_cls, collector_id='has listener')
         result_collected.send(
-            sender=listened_to, result=5, extra_context={'should': 'receive'})
+            sender=listened_to, result=5, context={'should': 'receive'})
         result_collected.send(
-            sender=unlistened, result=6, extra_context={'not': 'received'})
+            sender=unlistened, result=6, context={'not': 'received'})
         assert len(limit.calls) == 1
         assert limit.calls == [
-            {'result': 5, 'extra_context': {'should': 'receive'}},
+            {'result': 5, 'context': {'should': 'receive'}},
         ]
 
     def test_only_listens_to_its_collector_anonymous(self, limit_cls):
@@ -176,13 +176,13 @@ class TestLimitsListeningOnSignals(object):
         with limit:
             result_collected.send(
                 sender=listened_to, result=99,
-                extra_context={'should': 'receive'})
+                context={'should': 'receive'})
             result_collected.send(
                 sender=unlistened, result=55,
-                extra_context={'not': 'received'})
+                context={'not': 'received'})
             assert len(limit.calls) == 1
             assert limit.calls == [
-                {'result': 99, 'extra_context': {'should': 'receive'}},
+                {'result': 99, 'context': {'should': 'receive'}},
             ]
 
     def test_anonymous_enter_exit_calls_same_on_its_collector(self, limit_cls):

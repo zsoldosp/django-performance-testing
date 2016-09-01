@@ -54,7 +54,7 @@ class BaseLimit(object):
         return self.collector_id is None
 
     def result_collected_handler(
-            self, signal, sender, result, extra_context, **kwargs):
+            self, signal, sender, result, context, **kwargs):
         assert kwargs == {}, 'expected no kwargs, but got {!r}'.format(kwargs)
         if not self.is_anonymous():
             if self.collector_id != sender.id_:
@@ -62,4 +62,4 @@ class BaseLimit(object):
         else:
             if self.collector != sender:
                 return
-        self.handle_result(result=result, extra_context=extra_context)
+        self.handle_result(result=result, context=context)

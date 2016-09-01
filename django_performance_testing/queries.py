@@ -42,7 +42,7 @@ class QueryCollector(object):
         self.queries = connection.queries[self.nr_of_queries_when_entering:]
         result_collected.send(
             sender=self, result=len(self.queries),
-            extra_context=copy.deepcopy(context.current.data))
+            context=copy.deepcopy(context.current.data))
 
 _query_token_to_classification = {
     'SELECT': 'read',
@@ -66,14 +66,14 @@ class QueryBatchLimit(BaseLimit):
     def count_limit(self):
         return self.data['count_limit']
 
-    def handle_result(self, result, extra_context):
+    def handle_result(self, result, context):
         if result <= self.count_limit:
             return
 
-        extra_context_msg = ''
-        if extra_context:
-            extra_context_msg = ' {}'.format(
-                pprint.pformat(extra_context))
+        context_msg = ''
+        if context:
+            context_msg = ' {}'.format(
+                pprint.pformat(context))
         error_msg = 'Too many ({}) queries (limit: {}){}'.format(
-            result, self.count_limit, extra_context_msg)
+            result, self.count_limit, context_msg)
         raise ValueError(error_msg)
