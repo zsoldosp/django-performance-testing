@@ -22,15 +22,23 @@ class DjptTestRunnerMixin(object):
         return retval
 
 
+class DjptTestSuiteMixin(object):
+    pass
+
+
 def get_runner_with_djpt_mixin(*a, **kw):
     test_runner_cls = orig_get_runner(*a, **kw)
 
     class DjptTestRunner(DjptTestRunnerMixin, test_runner_cls.test_runner):
         pass
 
+    class DjptTestSuite(DjptTestSuiteMixin, test_runner_cls.test_suite):
+        pass
+
     class DjptDjangoTestRunner(DjptDjangoTestRunnerMixin, test_runner_cls):
 
         test_runner = DjptTestRunner
+        test_suite = DjptTestSuite
 
         def run_tests(self, *a, **kw):
             self.djpt_worst_report = WorstReport()

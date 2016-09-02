@@ -13,20 +13,27 @@ def to_dotted_name(cls):
     return '.'.join([cls.__module__, cls.__name__])
 
 
+class MyTestSuite(object):
+    pass
+
+
 class MyTestRunner(object):
     pass
 
 
 class MyDjangoTestRunner(object):
     test_runner = MyTestRunner
+    test_suite = MyTestSuite
 
 
-@pytest.mark.parametrize('runner_cls_name,test_runner_cls', [
-    ('django.test.runner.DiscoverRunner', unittest.TextTestRunner),
-    (to_dotted_name(MyDjangoTestRunner), MyTestRunner),
+@pytest.mark.parametrize('runner_cls_name,test_runner_cls,test_suite_cls', [
+    ('django.test.runner.DiscoverRunner',
+        unittest.TextTestRunner, unittest.TestSuite),
+    (to_dotted_name(MyDjangoTestRunner),
+        MyTestRunner, MyTestSuite),
 ], ids=['vanilla runner', 'custom runner'])
 def test_runner_keeps_default_classes_in_inheritance_chain(
-        settings, runner_cls_name, test_runner_cls):
+        settings, runner_cls_name, test_runner_cls, test_suite_cls):
     settings.TEST_RUNNER = runner_cls_name
     django_runner_cls = get_runner(settings)
 
@@ -53,6 +60,9 @@ def test_runner_keeps_default_classes_in_inheritance_chain(
     assert_is_djpt_mixin(
         cls=django_runner_cls.test_runner, base_cls=test_runner_cls,
         mixin_base_name='DjptTestRunner')
+    assert_is_djpt_mixin(
+        cls=django_runner_cls.test_suite, base_cls=test_suite_cls,
+        mixin_base_name='DjptTestSuite')
 
 
 def test_after_running_django_testcases_report_is_printed():
