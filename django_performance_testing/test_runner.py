@@ -2,7 +2,7 @@
 from django.test import utils
 from django_performance_testing.reports import WorstReport
 from django_performance_testing.utils import BeforeAfterWrapper
-from django_performance_testing import context
+from django_performance_testing.context import scoped_context
 
 orig_get_runner = utils.get_runner
 
@@ -24,22 +24,15 @@ class DjptTestRunnerMixin(object):
         return retval
 
 
-class DjptTestMethodBeforeAfterWrapper(BeforeAfterWrapper):
-
-    def before_hook(self):
-        context.current.enter(key='test name', value=str(self.wrapped_self))
-
-    def after_hook(self):
-        context.current.exit(key='test name', value=str(self.wrapped_self))
-
-
 class DjptTestSuiteMixin(object):
 
     def addTest(self, test):
         retval = super(DjptTestSuiteMixin, self).addTest(test)
         is_test = hasattr(test, '_testMethodName')
         if is_test:
-            DjptTestMethodBeforeAfterWrapper(test, test._testMethodName)
+            test_ctx = scoped_context(key='test name', value=str(test))
+            BeforeAfterWrapper(
+                    test, test._testMethodName, context_manager=test_ctx)
         return retval
 
 

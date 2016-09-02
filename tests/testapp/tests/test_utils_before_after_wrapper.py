@@ -2,53 +2,57 @@ from django_performance_testing.utils import BeforeAfterWrapper
 import pytest
 
 
-class TrackHookCallCountBeforeAfterWrapper(BeforeAfterWrapper):
-    def __init__(self, *a, **kw):
-        super(TrackHookCallCountBeforeAfterWrapper, self).__init__(*a, **kw)
+class TrackBeforeAfterCallCount(object):
+    def __init__(self):
         self.before_call_count = 0
         self.after_call_count = 0
 
-    def before_hook(self):
+    def __enter__(self):
         self.before_call_count += 1
+        return self
 
-    def after_hook(self):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self.after_call_count += 1
 
 
 def test_fails_when_class_has_no_such_method_as_to_wrap():
     with pytest.raises(AttributeError):
-        TrackHookCallCountBeforeAfterWrapper(
-            wrapped_self=object(), method_to_wrap_name='no_such_method')
+        BeforeAfterWrapper(
+            wrapped_self=object(), method_to_wrap_name='no_such_method',
+            context_manager=None)
 
 
 def test_before_after_hooks_are_as_expected():
     class Foo(object):
 
         def foo(self):
-            assert wrapped.before_call_count == 1
-            assert wrapped.after_call_count == 0
+            assert ctx.before_call_count == 1
+            assert ctx.after_call_count == 0
 
     foo = Foo()
-    wrapped = TrackHookCallCountBeforeAfterWrapper(
-        wrapped_self=foo, method_to_wrap_name='foo')
-    assert wrapped.before_call_count == 0
-    assert wrapped.after_call_count == 0
+    ctx = TrackBeforeAfterCallCount()
+    BeforeAfterWrapper(
+        wrapped_self=foo, method_to_wrap_name='foo', context_manager=ctx)
+    assert ctx.before_call_count == 0
+    assert ctx.after_call_count == 0
     foo.foo()
-    assert wrapped.before_call_count == 1
-    assert wrapped.after_call_count == 1
+    assert ctx.before_call_count == 1
+    assert ctx.after_call_count == 1
 
 
 def test_hooks_are_run_even_if_there_was_an_exception():
     class Bar(object):
 
         def will_fail(self):
+            assert ctx.before_call_count == 1
             raise Exception('heh')
 
     bar = Bar()
-    wrapped = TrackHookCallCountBeforeAfterWrapper(
-        wrapped_self=bar, method_to_wrap_name='will_fail')
+    ctx = TrackBeforeAfterCallCount()
+    BeforeAfterWrapper(
+        wrapped_self=bar, method_to_wrap_name='will_fail', context_manager=ctx)
     with pytest.raises(Exception) as excinfo:
         bar.will_fail()
     assert str(excinfo.value) == 'heh'
-    assert wrapped.before_call_count == 1
-    assert wrapped.after_call_count == 1
+    assert ctx.before_call_count == 1
+    assert ctx.after_call_count == 1
