@@ -9,7 +9,7 @@ from django_performance_testing.signals import result_collected
 WithId = namedtuple('WithId', ('id_',))
 
 
-def run_testcase_with_django_runner(testcase_cls):
+def run_testcase_with_django_runner(testcase_cls, nr_of_tests, all_should_pass=True, print_bad=True):
     django_runner_cls = get_runner(settings)
     django_runner = django_runner_cls()
     suite = django_runner.test_suite()
@@ -20,6 +20,15 @@ def run_testcase_with_django_runner(testcase_cls):
         stream=six.StringIO()
     )
     result = test_runner.run(suite)
+    assert result.testsRun == nr_of_tests
+    unexpected = result.errors + result.failures
+    if unexpected:
+        if print_bad:
+            for (test, msg) in unexpected:
+                print('{}\n\n{}\n'.format(test, msg))
+        assert not all_should_pass
+
+
     return dict(
         django_runner=django_runner,
         suite=suite,

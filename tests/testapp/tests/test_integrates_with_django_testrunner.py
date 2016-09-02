@@ -56,11 +56,7 @@ def test_after_running_django_testcases_report_is_printed():
         def test_two(self):
             result_collected.send(
                 sender=WithId('whatever'), result=2, context={'test': 'two'})
-    test_run = run_testcase_with_django_runner(SampleTestCase)
-    # sanity check
-    assert test_run['result'].testsRun == 2
-    assert test_run['result'].errors == []
-    assert test_run['result'].failures == []
+    test_run = run_testcase_with_django_runner(SampleTestCase, nr_of_tests=2)
 
     # actual test assertions
     test_runner = test_run['test_runner']
