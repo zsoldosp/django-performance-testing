@@ -3,7 +3,6 @@ class BeforeAfterWrapper(object):
         self.wrapped_self = wrapped_self
         self.method_to_wrap_name = method_to_wrap_name
         self.orig_method = getattr(self.wrapped_self, self.method_to_wrap_name)
-        assert self.orig_method is not None
         setattr(self.wrapped_self, self.method_to_wrap_name, self.wrap)
 
     def wrap(self, *a, **kw):
