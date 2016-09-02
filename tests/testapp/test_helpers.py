@@ -1,13 +1,16 @@
 from collections import namedtuple
+from django.conf import settings
+from django.test.utils import get_runner
+from django.utils import six
 from django_performance_testing import context
 from django_performance_testing.signals import result_collected
-from django.utils import six
 
 
 WithId = namedtuple('WithId', ('id_',))
 
 
-def run_django_testcase(testcase_cls, django_runner_cls):
+def run_testcase_with_django_runner(testcase_cls):
+    django_runner_cls = get_runner(settings)
     django_runner = django_runner_cls()
     suite = django_runner.test_suite()
     tests = django_runner.test_loader.loadTestsFromTestCase(testcase_cls)

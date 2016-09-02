@@ -5,7 +5,8 @@ from django_performance_testing.test_runner import \
 from django_performance_testing.reports import WorstReport
 from django_performance_testing.signals import result_collected
 import pytest
-from testapp.test_helpers import WithId, run_django_testcase
+from testapp.test_helpers import \
+    WithId, run_testcase_with_django_runner, override_current_context
 import unittest
 
 
@@ -45,7 +46,6 @@ def test_runner_keeps_default_classes_in_inheritance_chain(
 
 
 def test_after_running_django_testcases_report_is_printed():
-    runner = get_runner(settings)
 
     class SampleTestCase(unittest.TestCase):
 
@@ -56,8 +56,7 @@ def test_after_running_django_testcases_report_is_printed():
         def test_two(self):
             result_collected.send(
                 sender=WithId('whatever'), result=2, context={'test': 'two'})
-    test_run = run_django_testcase(
-        testcase_cls=SampleTestCase, django_runner_cls=runner)
+    test_run = run_testcase_with_django_runner(SampleTestCase)
     # sanity check
     assert test_run['result'].testsRun == 2
     assert test_run['result'].errors == []
