@@ -25,4 +25,21 @@ class Context(object):
             self.data.pop(key)
 
 
+class scoped_context(object):
+    def __init__(self, key, value, context=None):
+        self.key = key
+        self.value = value
+        if context is None:
+            self.context = current
+        else:
+            self.context = context
+
+    def __enter__(self):
+        self.context.enter(key=self.key, value=self.value)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.context.exit(key=self.key, value=self.value)
+
+
 current = Context()

@@ -1,5 +1,6 @@
 import pytest
 from django_performance_testing import context
+from testapp.test_helpers import override_current_context
 Context = context.Context
 
 
@@ -48,3 +49,14 @@ class TestContext(object):
 
     def test_there_is_a_singleton_current(self):
         assert isinstance(context.current, Context)
+
+    def test_scoped_context_behaves_as_expected(self):
+        ctx = Context()
+        with context.scoped_context(key='bar', value='baz', context=ctx):
+            assert ctx.data == {'bar': ['baz']}
+        assert ctx.data == {}
+
+        with override_current_context():
+            with context.scoped_context(key='foo', value='bar'):
+                assert context.current.data == {'foo': ['bar']}
+            assert context.current.data == {}
