@@ -1,7 +1,6 @@
 from django.test.utils import get_runner
-from django.conf import settings
-from django_performance_testing.test_runner import \
-    DjptDjangoTestRunnerMixin, DjptTestRunnerMixin
+from django.utils import six
+from django_performance_testing import test_runner as djpt_test_runner_module
 from django_performance_testing.reports import WorstReport
 from django_performance_testing.signals import result_collected
 import pytest
@@ -31,18 +30,29 @@ def test_runner_keeps_default_classes_in_inheritance_chain(
     settings.TEST_RUNNER = runner_cls_name
     django_runner_cls = get_runner(settings)
 
-    assert 'django_performance_testing.test_runner.DjptDjangoTestRunner' == \
-        to_dotted_name(django_runner_cls)
-    assert issubclass(django_runner_cls, DjptDjangoTestRunnerMixin)
-    assert django_runner_cls.__mro__[1] == DjptDjangoTestRunnerMixin
-    assert runner_cls_name == to_dotted_name(django_runner_cls.__mro__[2])
+    def assert_is_djpt_mixin(cls, base_cls, mixin_base_name):
+        fullname = 'django_performance_testing.test_runner.{}'.format(
+            mixin_base_name)
+        mixin_cls_name = '{}Mixin'.format(mixin_base_name)
+        mixin_cls = getattr(djpt_test_runner_module, mixin_cls_name)
+        assert fullname == to_dotted_name(cls)
+        assert issubclass(cls, mixin_cls)
+        assert cls.__mro__[1] == mixin_cls
+        if any(isinstance(base_cls, str_tp) for str_tp  in six.string_types):
+            assert base_cls == to_dotted_name(cls.__mro__[2])
+        elif isinstance(base_cls, type):
+            assert issubclass(cls, base_cls)
+            assert cls.__mro__[2] == base_cls
+        else:
+            raise NotImplementedError(
+                'Cannot handle type {}'.format(type(base_cls)))
 
-    assert 'django_performance_testing.test_runner.DjptTestRunner' == \
-        to_dotted_name(django_runner_cls.test_runner)
-    assert issubclass(django_runner_cls.test_runner, test_runner_cls)
-    assert issubclass(django_runner_cls.test_runner, DjptTestRunnerMixin)
-    assert django_runner_cls.test_runner.__mro__[1] == DjptTestRunnerMixin
-    assert django_runner_cls.test_runner.__mro__[2] == test_runner_cls
+    assert_is_djpt_mixin(
+        cls=django_runner_cls, base_cls=runner_cls_name,
+        mixin_base_name='DjptDjangoTestRunner')
+    assert_is_djpt_mixin(
+        cls=django_runner_cls.test_runner, base_cls=test_runner_cls,
+        mixin_base_name='DjptTestRunner')
 
 
 def test_after_running_django_testcases_report_is_printed():
