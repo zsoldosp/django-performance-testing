@@ -1,9 +1,7 @@
-from collections import namedtuple
 from django_performance_testing.signals import result_collected
 from django_performance_testing.reports import WorstReport, Result
 from django_performance_testing import reports
-
-WithId = namedtuple('WithId', ('id_',))
+from testapp.test_helpers import WithId
 
 
 def test_has_worst_value_and_its_context():
