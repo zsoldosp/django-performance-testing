@@ -8,3 +8,5 @@ class DjangoPerformanceTestingAppConfig(AppConfig):
     def ready(self):
         from .test_client import integrate_into_test_client
         integrate_into_test_client()
+        from .test_runner import integrate_into_django_test_runner
+        integrate_into_django_test_runner()
