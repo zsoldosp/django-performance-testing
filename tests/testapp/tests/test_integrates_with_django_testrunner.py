@@ -45,7 +45,7 @@ def test_runner_keeps_default_classes_in_inheritance_chain(
         assert fullname == to_dotted_name(cls)
         assert issubclass(cls, mixin_cls)
         assert cls.__mro__[1] == mixin_cls
-        if any(isinstance(base_cls, str_tp) for str_tp  in six.string_types):
+        if any(isinstance(base_cls, str_tp) for str_tp in six.string_types):
             assert base_cls == to_dotted_name(cls.__mro__[2])
         elif isinstance(base_cls, type):
             assert issubclass(cls, base_cls)
