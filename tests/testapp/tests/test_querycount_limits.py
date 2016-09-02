@@ -2,7 +2,7 @@ import pytest
 from django.contrib.auth.models import Group
 from django_performance_testing.queries import QueryCollector, QueryBatchLimit
 from django_performance_testing.core import BaseLimit
-from testapp.test_ctx_managers import override_current_context
+from testapp.test_helpers import override_current_context
 
 
 class TestQueryBatchLimit(object):

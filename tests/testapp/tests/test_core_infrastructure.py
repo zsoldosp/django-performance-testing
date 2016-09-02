@@ -4,7 +4,7 @@ except:
     from mock import patch
 import pytest
 from django_performance_testing.signals import result_collected
-from testapp.test_ctx_managers import \
+from testapp.test_helpers import \
     override_current_context, capture_result_collected
 
 
