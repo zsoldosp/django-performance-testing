@@ -24,5 +24,3 @@ class WorstReport(object):
             self.data[sender.id_] = Result(
                 value=result, context=copy.deepcopy(context))
 
-
-worst = WorstReport()

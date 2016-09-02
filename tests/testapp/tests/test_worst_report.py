@@ -64,5 +64,3 @@ def test_result_repr_is_human_readable():
     assert '(1, 2) {}'.format('\n'.join(lines)) == repr(result)
 
 
-def test_there_is_a_global_worst_report_created_at_startup():
-    assert isinstance(reports.worst, WorstReport)
