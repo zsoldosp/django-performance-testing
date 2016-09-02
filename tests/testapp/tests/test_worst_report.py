@@ -1,6 +1,6 @@
+from django.utils import six
 from django_performance_testing.signals import result_collected
 from django_performance_testing.reports import WorstReport, Result
-from django_performance_testing import reports
 from testapp.test_helpers import WithId
 
 
@@ -62,3 +62,26 @@ def test_result_repr_is_human_readable():
     assert '(1, 2) {}'.format('\n'.join(lines)) == repr(result)
 
 
+def test_report_printed_includes_all_needed_data():
+    report = WorstReport()
+    report.handle_result_collected(
+        signal=None, sender=WithId('id 2 - querycount'),
+        result=9, context={'foo': 'bar'})
+    report.handle_result_collected(
+        signal=None, sender=WithId('id 1 - querycount'),
+        result=2, context={'test': 'some.app.tests.TestCase.test_foo'})
+    stream = six.StringIO()
+    report.render(stream)
+    lines = stream.getvalue().strip().split('\n')
+    assert len(lines) == 3
+    assert lines[0] == 'Worst Performing Items'
+    assert lines[1] == \
+        "id 1 - querycount: 2 {'test': 'some.app.tests.TestCase.test_foo'}"
+    assert lines[2] == "id 2 - querycount: 9 {'foo': 'bar'}"
+
+
+def test_report_prints_nothing_when_there_is_no_data():
+    report = WorstReport()
+    stream = six.StringIO()
+    report.render(stream)
+    assert stream.getvalue() == ''

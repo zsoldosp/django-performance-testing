@@ -1,6 +1,7 @@
 import copy
-import pprint
+from django.utils import six
 from django_performance_testing.signals import result_collected
+import pprint
 
 
 class Result(object):
@@ -24,3 +25,14 @@ class WorstReport(object):
             self.data[sender.id_] = Result(
                 value=result, context=copy.deepcopy(context))
 
+    def render(self, stream):
+        if not self.data:
+            return
+        stream.write('Worst Performing Items\n')
+        for k in sorted(self.data.keys()):
+            stream.write('{}: {}\n'.format(k, self.data[k]))
+
+    def rendered(self):
+        out = six.StringIO()
+        self.render(out)
+        return out.getvalue()
