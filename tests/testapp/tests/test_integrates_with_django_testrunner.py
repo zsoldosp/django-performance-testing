@@ -88,3 +88,14 @@ def test_after_running_django_testcases_report_is_printed():
     assert whatever.context == {'test': 'two'}
     printed = test_run['out']
     assert printed.endswith(test_runner.djpt_worst_report.rendered())
+
+
+def test_runner_sets_executing_test_method_as_context():
+
+    class SomeTestCase(unittest.TestCase):
+        def test_foo(self):
+            assert 'test name' in ctx.data, ctx.data.keys()
+            assert [str(self)] == ctx.data['test name']
+
+    with override_current_context() as ctx:
+        run_testcase_with_django_runner(SomeTestCase, nr_of_tests=1)
