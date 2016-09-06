@@ -50,13 +50,13 @@ def get_runner_with_djpt_mixin(*a, **kw):
             test_method = getattr(test, test._testMethodName)
             if test_method.__code__ != BeforeAfterWrapper.wrap.__code__:
                 test_ctx = scoped_context(key='test name', value=str(test))
-                BeforeAfterWrapper(
-                    test, test._testMethodName, context_manager=test_ctx)
                 test_method_qcc = \
                     DjptTestRunnerMixin.test_method_querycount_collector
                 BeforeAfterWrapper(
                     test, test._testMethodName, context_manager=test_method_qcc
                 )
+                BeforeAfterWrapper(
+                    test, test._testMethodName, context_manager=test_ctx)
         return retval
 
     def fn_to_id(fn):
