@@ -41,7 +41,6 @@ def get_runner_with_djpt_mixin(*a, **kw):
         test_runner = DjptTestRunner
 
         def run_tests(self, *a, **kw):
-            self.djpt_worst_report = WorstReport()
             return super(DjptDjangoTestRunner, self).run_tests(*a, **kw)
 
     def addTest(suite_self, test):
