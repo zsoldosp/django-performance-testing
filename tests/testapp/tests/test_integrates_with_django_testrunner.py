@@ -1,3 +1,4 @@
+from django.contrib.auth.models import Group
 from django.test.utils import get_runner
 from django.utils import six
 from django_performance_testing import test_runner as djpt_test_runner_module
@@ -82,7 +83,7 @@ def test_after_running_django_testcases_report_is_printed():
     test_runner = test_run['test_runner']
     assert isinstance(test_runner.djpt_worst_report, WorstReport)
     report_data = test_runner.djpt_worst_report.data
-    assert list(report_data.keys()) == ['whatever']
+    assert 'whatever' in list(report_data.keys())
     whatever = report_data['whatever']
     assert whatever.value == 2
     assert whatever.context == {'test': 'two'}
@@ -101,3 +102,19 @@ def test_runner_sets_executing_test_method_as_context():
 
     with override_current_context() as ctx:
         run_testcase_with_django_runner(SomeTestCase, nr_of_tests=1)
+
+
+def test_number_of_queries_per_test_method_can_be_limited(db, settings):
+
+    class ATestCase(unittest.TestCase):
+        def test_foo(self):
+            assert len(Group.objects.all()) == 0
+
+    settings.PERFORMANCE_LIMITS = {
+        'test method': {'count_limit': 0}
+    }
+
+    test_run = run_testcase_with_django_runner(
+        ATestCase, nr_of_tests=1, all_should_pass=False)
+    out = test_run['out']
+    assert 'ValueError: Too many (1) queries (limit: 0)' in out

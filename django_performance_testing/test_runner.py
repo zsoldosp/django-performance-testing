@@ -3,6 +3,7 @@ from django.test import utils
 from django_performance_testing.reports import WorstReport
 from django_performance_testing.utils import BeforeAfterWrapper
 from django_performance_testing.context import scoped_context
+from django_performance_testing.queries import QueryCollector, QueryBatchLimit
 
 orig_get_runner = utils.get_runner
 
@@ -51,7 +52,12 @@ def get_runner_with_djpt_mixin(*a, **kw):
             if test_method.__code__ != BeforeAfterWrapper.wrap.__code__:
                 test_ctx = scoped_context(key='test name', value=str(test))
                 BeforeAfterWrapper(
-                        test, test._testMethodName, context_manager=test_ctx)
+                    test, test._testMethodName, context_manager=test_ctx)
+                test_method_qcc = \
+                    DjptTestRunnerMixin.test_method_querycount_collector
+                BeforeAfterWrapper(
+                    test, test._testMethodName, context_manager=test_method_qcc
+                )
         return retval
 
     def fn_to_id(fn):
@@ -65,3 +71,8 @@ def get_runner_with_djpt_mixin(*a, **kw):
 
 def integrate_into_django_test_runner():
     utils.get_runner = get_runner_with_djpt_mixin
+    test_method_qc_id = 'test method'
+    DjptTestRunnerMixin.test_method_querycount_collector = QueryCollector(
+        id_=test_method_qc_id)
+    DjptTestRunnerMixin.test_method_querycount_limit = QueryBatchLimit(
+        collector_id=test_method_qc_id, settings_based=True)
