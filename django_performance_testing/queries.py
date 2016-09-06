@@ -1,5 +1,6 @@
 import copy
 import pprint
+import traceback
 from django.db import connection
 from django_performance_testing.signals import result_collected
 from django_performance_testing.core import BaseLimit
@@ -46,6 +47,12 @@ class QueryCollector(object):
         if exc_type is None:
             for (receiver, response) in signal_responses:
                 if isinstance(response,  BaseException):
+                    error_msg = '{}{}: {}'.format(
+                        ''.join(traceback.format_tb(response.__traceback__)),
+                        type(response).__name__,
+                        str(response)
+                    )
+                    raise type(response)(error_msg)
                     raise response
 
 _query_token_to_classification = {

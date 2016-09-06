@@ -44,5 +44,5 @@ class TestQueryBatchLimit(object):
                     list(Group.objects.all())
                     Group.objects.update(name='bar')
                     Group.objects.create(name='group')
-        assert 'Too many (3) queries (limit: 2) {\'some\': [\'context\']}' == \
+        assert 'Too many (3) queries (limit: 2) {\'some\': [\'context\']}' in \
             str(excinfo.value)

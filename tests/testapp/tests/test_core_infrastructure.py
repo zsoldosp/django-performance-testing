@@ -192,8 +192,13 @@ class TestLimitsListeningOnSignals(object):
         class MyException(Exception):
             pass
 
-        first_attached_handler = Mock()
-        last_attached_handler = Mock()
+        def get_mock_listener():
+            m = Mock()
+            m.return_value = None
+            return m
+
+        first_attached_handler = get_mock_listener()
+        last_attached_handler = get_mock_listener()
         result_collected.connect(first_attached_handler)
         with patch.object(limit, 'handle_result') as handle_result_mock:
             handle_result_mock.side_effect = MyException('foo')
@@ -203,7 +208,9 @@ class TestLimitsListeningOnSignals(object):
         assert handle_result_mock.called
         result_collected.disconnect(first_attached_handler)
         result_collected.disconnect(last_attached_handler)
-        assert str(excinfo.value) == 'foo'
+        assert str(excinfo.value).endswith('foo')
+        method_name_in_stacktrace = 'handle_result'
+        assert method_name_in_stacktrace in str(excinfo.value)
         assert first_attached_handler.called
         assert last_attached_handler.called
 

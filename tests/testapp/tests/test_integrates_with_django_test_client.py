@@ -23,4 +23,4 @@ def test_can_specify_limits_through_settings_for_django_test_client(
             url=url,
             **kwparams
         )
-    assert expected_error_message == str(excinfo.value)
+    assert str(excinfo.value).endswith(expected_error_message)
