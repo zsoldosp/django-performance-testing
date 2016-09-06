@@ -1,6 +1,5 @@
 import pytest
 from django.core.urlresolvers import reverse
-from django.db import reset_queries
 
 
 @pytest.mark.parametrize('kwparams', [
@@ -9,7 +8,6 @@ from django.db import reset_queries
 ], ids=['GET', 'POST'])
 def test_can_specify_limits_through_settings_for_django_test_client(
         db, settings, client, kwparams):
-    reset_queries()  # without this, things go wrong with counting
     settings.PERFORMANCE_LIMITS = {
         'django.test.client.Client': {'count_limit': kwparams['limit']}}
 
