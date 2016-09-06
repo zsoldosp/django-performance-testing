@@ -40,9 +40,13 @@ class QueryCollector(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         connection.force_debug_cursor = self.orig_force_debug_cursor
         self.queries = connection.queries[self.nr_of_queries_when_entering:]
-        result_collected.send(
+        signal_responses = result_collected.send_robust(
             sender=self, result=len(self.queries),
             context=copy.deepcopy(context.current.data))
+        if exc_type is None:
+            for (receiver, response) in signal_responses:
+                if isinstance(response,  BaseException):
+                    raise response
 
 _query_token_to_classification = {
     'SELECT': 'read',

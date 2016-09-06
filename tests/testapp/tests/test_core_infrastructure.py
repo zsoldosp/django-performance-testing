@@ -1,7 +1,7 @@
 try:
-    from unittest.mock import patch
+    from unittest.mock import patch, Mock
 except:
-    from mock import patch
+    from mock import patch, Mock
 import pytest
 from django_performance_testing.signals import result_collected
 from testapp.test_helpers import \
@@ -185,6 +185,37 @@ class TestLimitsListeningOnSignals(object):
         with limit:
             pass
         assert len(limit.calls) == 1
+
+    def test_signals_to_all_listeners_reports_first_failure(self, limit_cls):
+        limit = limit_cls()
+
+        class MyException(Exception):
+            pass
+
+        first_attached_handler = Mock()
+        last_attached_handler = Mock()
+        result_collected.connect(first_attached_handler)
+        with patch.object(limit, 'handle_result') as handle_result_mock:
+            handle_result_mock.side_effect = MyException('foo')
+            with pytest.raises(MyException) as excinfo:
+                with limit:
+                    result_collected.connect(last_attached_handler)
+        assert handle_result_mock.called
+        result_collected.disconnect(first_attached_handler)
+        result_collected.disconnect(last_attached_handler)
+        assert str(excinfo.value) == 'foo'
+        assert first_attached_handler.called
+        assert last_attached_handler.called
+
+    def test_signal_handler_error_doesnt_hide_inner_ctx_error(self, limit_cls):
+        limit = limit_cls()
+        with patch.object(limit, 'handle_result') as handle_result_mock:
+            handle_result_mock.side_effect = Exception('handler error')
+            with pytest.raises(Exception) as excinfo:
+                with limit:
+                    raise Exception('actual code error')
+        assert str(excinfo.value) == 'actual code error'
+        assert handle_result_mock.called
 
 
 class TestCreatingSettingsBasedLimits(object):
