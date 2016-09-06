@@ -2,9 +2,21 @@ import copy
 import pprint
 import traceback
 from django.db import connection
-from django_performance_testing.signals import result_collected
+from django_performance_testing.signals import \
+    result_collected, before_clearing_queries_log
 from django_performance_testing.core import BaseLimit
+from django_performance_testing.utils import DelegatingProxy
 from django_performance_testing import context
+
+
+def setup_sending_before_clearing_queries_log_signal():
+    class SignalSendingBeforeClearingQueriesProxy(DelegatingProxy):
+        def clear(self):
+            before_clearing_queries_log.send(sender=None, queries=tuple(self))
+            self.wrapped.clear()
+
+    connection.queries_log = SignalSendingBeforeClearingQueriesProxy(
+        connection.queries_log)
 
 
 class QueryCollector(object):
@@ -36,11 +48,19 @@ class QueryCollector(object):
         self.nr_of_queries_when_entering = len(connection.queries)
         self.orig_force_debug_cursor = connection.force_debug_cursor
         connection.force_debug_cursor = True
+        before_clearing_queries_log.connect(
+            self.queries_about_to_be_reset_handler)
         return self
 
+    def queries_about_to_be_reset_handler(self, signal, sender, queries):
+        self.store_queries()
+        self.nr_of_queries_when_entering = 0
+
     def __exit__(self, exc_type, exc_val, exc_tb):
+        before_clearing_queries_log.disconnect(
+            self.queries_about_to_be_reset_handler)
         connection.force_debug_cursor = self.orig_force_debug_cursor
-        self.queries = connection.queries[self.nr_of_queries_when_entering:]
+        self.store_queries()
         signal_responses = result_collected.send_robust(
             sender=self, result=len(self.queries),
             context=copy.deepcopy(context.current.data))
@@ -54,6 +74,9 @@ class QueryCollector(object):
                     )
                     raise type(response)(error_msg)
                     raise response
+
+    def store_queries(self):
+        self.queries += connection.queries[self.nr_of_queries_when_entering:]
 
 _query_token_to_classification = {
     'SELECT': 'read',

@@ -1,5 +1,6 @@
 from django.contrib.auth.models import Group
-from django.db import connection
+from django.core import signals
+from django.db import connection, reset_queries
 from django_performance_testing.queries import QueryCollector
 from django_performance_testing.signals import result_collected
 
@@ -56,3 +57,14 @@ class TestQueryCollector(object):
             assert {outer: [3], inner: [1]} == captured
         finally:
             result_collected.disconnect(capture_signals)
+
+
+def test_collector_can_live_through_request_reseting_queries(db):
+    with QueryCollector() as qc:
+        list(Group.objects.all())
+        signals.request_started.send(sender=None)
+        Group.objects.update(name='df')
+        reset_queries()
+        Group.objects.all().delete()
+
+    assert len(qc.queries) == 3

@@ -10,3 +10,5 @@ class DjangoPerformanceTestingAppConfig(AppConfig):
         integrate_into_test_client()
         from .test_runner import integrate_into_django_test_runner
         integrate_into_django_test_runner()
+        from .queries import setup_sending_before_clearing_queries_log_signal
+        setup_sending_before_clearing_queries_log_signal()
