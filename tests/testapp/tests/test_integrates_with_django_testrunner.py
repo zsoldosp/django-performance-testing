@@ -14,7 +14,9 @@ def to_dotted_name(cls):
 
 
 class MyTestSuite(object):
-    pass
+
+    def addTest(self, test):
+        pass
 
 
 class MyTestRunner(object):
@@ -60,9 +62,7 @@ def test_runner_keeps_default_classes_in_inheritance_chain(
     assert_is_djpt_mixin(
         cls=django_runner_cls.test_runner, base_cls=test_runner_cls,
         mixin_base_name='DjptTestRunner')
-    assert_is_djpt_mixin(
-        cls=django_runner_cls.test_suite, base_cls=test_suite_cls,
-        mixin_base_name='DjptTestSuite')
+    assert django_runner_cls.test_suite == test_suite_cls
 
 
 def test_after_running_django_testcases_report_is_printed():

@@ -24,16 +24,9 @@ class DjptTestRunnerMixin(object):
         return retval
 
 
-class DjptTestSuiteMixin(object):
-
-    def addTest(self, test):
-        retval = super(DjptTestSuiteMixin, self).addTest(test)
-        is_test = hasattr(test, '_testMethodName')
-        if is_test:
-            test_ctx = scoped_context(key='test name', value=str(test))
-            BeforeAfterWrapper(
-                    test, test._testMethodName, context_manager=test_ctx)
-        return retval
+class DjptWrappedTestSuiteAddTest(object):
+    def __init__(self, orig_suite_add_test):
+        self.orig_suite_add_test = orig_suite_add_test
 
 
 def get_runner_with_djpt_mixin(*a, **kw):
@@ -42,18 +35,31 @@ def get_runner_with_djpt_mixin(*a, **kw):
     class DjptTestRunner(DjptTestRunnerMixin, test_runner_cls.test_runner):
         pass
 
-    class DjptTestSuite(DjptTestSuiteMixin, test_runner_cls.test_suite):
-        pass
-
     class DjptDjangoTestRunner(DjptDjangoTestRunnerMixin, test_runner_cls):
 
         test_runner = DjptTestRunner
-        test_suite = DjptTestSuite
 
         def run_tests(self, *a, **kw):
             self.djpt_worst_report = WorstReport()
             return super(DjptDjangoTestRunner, self).run_tests(*a, **kw)
 
+    def addTest(suite_self, test):
+        retval = orig_suite_addTest(suite_self, test)
+        is_test = hasattr(test, '_testMethodName')
+        if is_test:
+            test_method = getattr(test, test._testMethodName)
+            if test_method.__code__ != BeforeAfterWrapper.wrap.__code__:
+                test_ctx = scoped_context(key='test name', value=str(test))
+                BeforeAfterWrapper(
+                        test, test._testMethodName, context_manager=test_ctx)
+        return retval
+
+    def fn_to_id(fn):
+        return fn.__code__.co_filename
+
+    if fn_to_id(addTest) != fn_to_id(DjptDjangoTestRunner.test_suite.addTest):
+        orig_suite_addTest = DjptDjangoTestRunner.test_suite.addTest
+        DjptDjangoTestRunner.test_suite.addTest = addTest
     return DjptDjangoTestRunner
 
 
