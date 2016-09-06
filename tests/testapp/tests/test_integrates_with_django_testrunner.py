@@ -95,7 +95,9 @@ def test_runner_sets_executing_test_method_as_context():
     class SomeTestCase(unittest.TestCase):
         def test_foo(self):
             assert 'test name' in ctx.data, ctx.data.keys()
-            assert [str(self)] == ctx.data['test name']
+            tests = ctx.data['test name']
+            assert len(tests) == 1
+            assert [str(self)] == tests
 
     with override_current_context() as ctx:
         run_testcase_with_django_runner(SomeTestCase, nr_of_tests=1)
