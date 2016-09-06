@@ -218,4 +218,12 @@ class TestCreatingSettingsBasedLimits(object):
         assert 'Can only be settings based when collector_id is provided.' == \
             str(excinfo.value)
 
+    def test_when_no_data_in_settings_dont_fail(self, limit_cls, settings):
+        id_ = 'settings has no value for this limit'
+        collector = limit_cls.collector_cls(id_=id_)  # noqa: F841
+        limit = limit_cls(collector_id=id_, settings_based=True)
+        settings.PERFORMANCE_LIMITS = {}
+        assert limit.data == {}
+        limit.handle_result(result=1, context={})  # no error is raised
+
 # TODO: what to do w/ reports, where one'd listen on more than one collector?

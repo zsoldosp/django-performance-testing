@@ -64,9 +64,11 @@ class QueryBatchLimit(BaseLimit):
 
     @property
     def count_limit(self):
-        return self.data['count_limit']
+        return self.data.get('count_limit', None)
 
     def handle_result(self, result, context):
+        if self.count_limit is None:
+            return
         if result <= self.count_limit:
             return
 
