@@ -8,6 +8,8 @@ from django_performance_testing.signals import results_collected
 
 WithId = namedtuple('WithId', ('id_',))
 
+NameValue = namedtuple('NameValue', ('name', 'value'))
+
 
 def run_testcase_with_django_runner(
         testcase_cls, nr_of_tests, all_should_pass=True, print_bad=True):

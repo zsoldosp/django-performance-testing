@@ -22,12 +22,16 @@ class WorstReport(object):
     def handle_results_collected(self, signal, sender, results, context, **kw):
         name_value_pairs = list(map(self.to_name_value_pair, results))
         self.ensure_unique_names(name_value_pairs)
-        current = self.data.get(sender.id_, {}).get('')
-        result = results[0]
-        if current is None or current.value < result:
-            self.data[sender.id_] = {
-                '': Result(value=result, context=copy.deepcopy(context))
-            }
+
+        def handle_result(name, result):
+            d = self.data[sender.id_]
+            current = d.get(name, None)
+            if current is None or current.value < result:
+                d[name] = Result(value=result, context=copy.deepcopy(context))
+
+        self.data.setdefault(sender.id_, {})
+        for name, result in name_value_pairs:
+            handle_result(name, result)
 
     def to_name_value_pair(self, value):
         return (

@@ -2,7 +2,7 @@ import pytest
 from django.utils import six
 from django_performance_testing.signals import results_collected
 from django_performance_testing.reports import WorstReport, Result
-from testapp.test_helpers import WithId
+from testapp.test_helpers import WithId, NameValue
 
 
 def test_has_worst_value_and_its_context():
@@ -103,3 +103,34 @@ def test_report_can_deal_with_single_anonymous_result_not_with_more():
     assert 'Duplicate result name(s): \'\'' == str(excinfo.value)
     assert list(report.data.keys()) == ['foo']
     assert report.data['foo'][''].value == 9
+
+
+def test_there_is_one_channel_per_each_name_received():
+    report = WorstReport()
+    report.handle_results_collected(
+        signal=None, sender=WithId('id'),
+        results=[NameValue('one', 1), NameValue('two', 2)], context={})
+    assert list(report.data.keys()) == ['id']
+    assert sorted(report.data['id'].keys()) == ['one', 'two']
+    assert report.data['id']['one'].value == 1
+    assert report.data['id']['one'].context == {}
+    assert report.data['id']['two'].value == 2
+    assert report.data['id']['two'].context == {}
+
+
+def test_has_separate_context_for_each_channels_worst():
+    report = WorstReport()
+    report.handle_results_collected(
+        signal=None, sender=WithId('id'),
+        results=[NameValue('one', 1), NameValue('two', 2)],
+        context={'event': 'first'})
+    report.handle_results_collected(
+        signal=None, sender=WithId('id'),
+        results=[NameValue('one', 3), NameValue('two', 1)],
+        context={'event': 'second'})
+    assert list(report.data.keys()) == ['id']
+    assert sorted(report.data['id'].keys()) == ['one', 'two']
+    assert report.data['id']['one'].value == 3
+    assert report.data['id']['one'].context == {'event': 'second'}
+    assert report.data['id']['two'].value == 2
+    assert report.data['id']['two'].context == {'event': 'first'}
