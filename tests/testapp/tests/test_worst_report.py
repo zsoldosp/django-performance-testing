@@ -77,7 +77,8 @@ def test_report_printed_includes_all_needed_data():
     assert len(lines) == 3
     assert lines[0] == 'Worst Performing Items'
     assert lines[1] == \
-        "id 1 - querycount: {'': 2 {'test': 'some.app.tests.TestCase.test_foo'}}"
+        "id 1 - querycount: {'': 2 " \
+        "{'test': 'some.app.tests.TestCase.test_foo'}}"
     assert lines[2] == "id 2 - querycount: {'': 9 {'foo': 'bar'}}"
 
 
