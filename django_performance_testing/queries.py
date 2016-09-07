@@ -2,6 +2,7 @@ import copy
 import pprint
 import traceback
 from django.db import connection
+from django.utils import six
 from django_performance_testing.signals import \
     result_collected, before_clearing_queries_log
 from django_performance_testing.core import BaseLimit
@@ -17,6 +18,51 @@ def setup_sending_before_clearing_queries_log_signal():
 
     connection.queries_log = SignalSendingBeforeClearingQueriesProxy(
         connection.queries_log)
+
+
+class QueryCountResult(object):
+
+    def __init__(self, queries):
+        self.queries = queries
+
+    @property
+    def nr_of_queries(self):
+        return len(self.queries)
+
+    def __cmp(self, other):
+        self_val = self.nr_of_queries
+        if type(other) in six.integer_types:
+            other_val = other
+        elif type(other) == QueryCountResult:
+            other_val = other.nr_of_queries
+        else:
+            raise NotImplementedError()
+        if self_val > other_val:
+            return 1
+        if self_val < other_val:
+            return -1
+        return 0
+
+    def __lt__(self, other):
+        return self.__cmp(other) < 0
+
+    def __le__(self, other):
+        return self.__cmp(other) <= 0
+
+    def __eq__(self, other):
+        return self.__cmp(other) == 0
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __gt__(self, other):
+        return not (self <= other)
+
+    def __ge__(self, other):
+        return not (self < other)
+
+    def __str__(self):
+        return str(self.nr_of_queries)
 
 
 class QueryCollector(object):
@@ -62,7 +108,7 @@ class QueryCollector(object):
         connection.force_debug_cursor = self.orig_force_debug_cursor
         self.store_queries()
         signal_responses = result_collected.send_robust(
-            sender=self, result=len(self.queries),
+            sender=self, result=QueryCountResult(self.queries),
             context=copy.deepcopy(context.current.data))
         if exc_type is None:
             for (receiver, response) in signal_responses:
