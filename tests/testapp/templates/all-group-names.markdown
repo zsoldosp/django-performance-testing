@@ -1,0 +1,3 @@
+{% for group in groups %}
+* {{ group.name }}
+{% endfor %}
