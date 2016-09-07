@@ -2,7 +2,7 @@ from django.contrib.auth.models import Group
 from django.core import signals
 from django.db import connection, reset_queries
 from django_performance_testing.queries import QueryCollector
-from django_performance_testing.signals import result_collected
+from django_performance_testing.signals import results_collected
 
 
 class TestQueryCollector(object):
@@ -43,20 +43,20 @@ class TestQueryCollector(object):
     def test_ctx_managers_can_be_nested(self, db):
         captured = {}
 
-        def capture_signals(signal, sender, result, context):
+        def capture_signals(signal, sender, results, context):
             captured.setdefault(sender, [])
-            captured[sender].append(result)
+            captured[sender].append(results)
 
-        result_collected.connect(capture_signals)
+        results_collected.connect(capture_signals)
         try:
             with QueryCollector() as outer:
                 list(Group.objects.all())
                 list(Group.objects.all())
                 with QueryCollector() as inner:
                     list(Group.objects.all())
-            assert {outer: [3], inner: [1]} == captured
+            assert {outer: [[3]], inner: [[1]]} == captured
         finally:
-            result_collected.disconnect(capture_signals)
+            results_collected.disconnect(capture_signals)
 
 
 def test_collector_can_live_through_request_reseting_queries(db):

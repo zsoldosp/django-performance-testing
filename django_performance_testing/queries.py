@@ -5,7 +5,7 @@ import traceback
 from django.db import connection
 from django.utils import six
 from django_performance_testing.signals import \
-    result_collected, before_clearing_queries_log
+    results_collected, before_clearing_queries_log
 from django_performance_testing.core import BaseLimit
 from django_performance_testing.utils import DelegatingProxy
 from django_performance_testing import context
@@ -90,8 +90,8 @@ class QueryCollector(object):
             self.queries_about_to_be_reset_handler)
         connection.force_debug_cursor = self.orig_force_debug_cursor
         self.store_queries()
-        signal_responses = result_collected.send_robust(
-            sender=self, result=QueryCountResult(self.queries),
+        signal_responses = results_collected.send_robust(
+            sender=self, results=[QueryCountResult(self.queries)],
             context=copy.deepcopy(context.current.data))
         if exc_type is None:
             for (receiver, response) in signal_responses:
@@ -129,9 +129,10 @@ class QueryBatchLimit(BaseLimit):
     def count_limit(self):
         return self.data.get('count_limit', None)
 
-    def handle_result(self, result, context):
+    def handle_results(self, results, context):
         if self.count_limit is None:
             return
+        result = results[0]
         if result <= self.count_limit:
             return
 

@@ -3,7 +3,7 @@ from django.conf import settings
 from django.test.utils import get_runner
 from django.utils import six
 from django_performance_testing import context
-from django_performance_testing.signals import result_collected
+from django_performance_testing.signals import results_collected
 
 
 WithId = namedtuple('WithId', ('id_',))
@@ -42,16 +42,16 @@ class capture_result_collected(object):
 
     def __enter__(self):
         self.calls = []
-        result_collected.connect(self.result_collected_handler)
+        results_collected.connect(self.results_collected_handler)
         return self
 
-    def result_collected_handler(self, signal, sender, result, context):
+    def results_collected_handler(self, signal, sender, results, context):
         self.calls.append(dict(
-            sender=sender, signal=signal, result=result,
+            sender=sender, signal=signal, results=results,
             context=context))
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        result_collected.disconnect(self.result_collected_handler)
+        results_collected.disconnect(self.results_collected_handler)
 
 
 class override_current_context(object):

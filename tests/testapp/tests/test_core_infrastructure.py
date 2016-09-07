@@ -3,7 +3,7 @@ try:
 except:
     from mock import patch, Mock
 import pytest
-from django_performance_testing.signals import result_collected
+from django_performance_testing.signals import results_collected
 from testapp.test_helpers import \
     override_current_context, capture_result_collected
 
@@ -92,9 +92,9 @@ class TestLimitsListeningOnSignals(object):
         class CallCapturingLimit(limit_cls):
             calls = []
 
-            def handle_result(self, result, context):
+            def handle_results(self, results, context):
                 self.calls.append(
-                    dict(result=result, context=context))
+                    dict(results=results, context=context))
 
         return CallCapturingLimit(**kw)
 
@@ -102,41 +102,41 @@ class TestLimitsListeningOnSignals(object):
         collector = limit_cls.collector_cls(id_='listen by id')
         limit = self.get_call_capturing_limit(
             limit_cls=limit_cls, collector_id='listen by id')
-        result_collected.send(
-            sender=collector, result=0,
+        results_collected.send(
+            sender=collector, results=[0],
             context={'before': 'context manager'})
         with limit:
-            result_collected.send(
-                sender=collector, result=1,
+            results_collected.send(
+                sender=collector, results=[1],
                 context={'inside': 'context manager'})
-        result_collected.send(
-            sender=collector, result=2,
+        results_collected.send(
+            sender=collector, results=[2],
             context={'after': 'context manager'})
 
         assert len(limit.calls) == 3
         assert limit.calls == [
-            {'result': 0, 'context': {'before': 'context manager'}},
-            {'result': 1, 'context': {'inside': 'context manager'}},
-            {'result': 2, 'context': {'after': 'context manager'}},
+            {'results': [0], 'context': {'before': 'context manager'}},
+            {'results': [1], 'context': {'inside': 'context manager'}},
+            {'results': [2], 'context': {'after': 'context manager'}},
         ]
 
     def test_without_id_only_listens_while_a_context_manager(self, limit_cls):
         limit = self.get_call_capturing_limit(limit_cls=limit_cls)
         assert limit.collector_id is None
-        result_collected.send(
-            sender=limit.collector, result=0,
+        results_collected.send(
+            sender=limit.collector, results=[0],
             context={'before': 'context manager'})
         with limit:
-            result_collected.send(
-                sender=limit.collector, result=1,
+            results_collected.send(
+                sender=limit.collector, results=[1],
                 context={'inside': 'context manager'})
             assert len(limit.calls) == 1
             assert limit.calls == [
-                {'result': 1, 'context': {'inside': 'context manager'}},
+                {'results': [1], 'context': {'inside': 'context manager'}},
             ]
         limit.calls = []
-        result_collected.send(
-            sender=limit.collector, result=2,
+        results_collected.send(
+            sender=limit.collector, results=[2],
             context={'after': 'context manager'})
         assert len(limit.calls) == 0
 
@@ -145,13 +145,13 @@ class TestLimitsListeningOnSignals(object):
         unlistened = limit_cls.collector_cls(id_='no listeners')
         limit = self.get_call_capturing_limit(
             limit_cls=limit_cls, collector_id='has listener')
-        result_collected.send(
-            sender=listened_to, result=5, context={'should': 'receive'})
-        result_collected.send(
-            sender=unlistened, result=6, context={'not': 'received'})
+        results_collected.send(
+            sender=listened_to, results=[5], context={'should': 'receive'})
+        results_collected.send(
+            sender=unlistened, results=[6], context={'not': 'received'})
         assert len(limit.calls) == 1
         assert limit.calls == [
-            {'result': 5, 'context': {'should': 'receive'}},
+            {'results': [5], 'context': {'should': 'receive'}},
         ]
 
     def test_only_listens_to_its_collector_anonymous(self, limit_cls):
@@ -159,15 +159,15 @@ class TestLimitsListeningOnSignals(object):
         listened_to = limit.collector
         unlistened = limit_cls.collector_cls(id_='no listeners')
         with limit:
-            result_collected.send(
-                sender=listened_to, result=99,
+            results_collected.send(
+                sender=listened_to, results=[99],
                 context={'should': 'receive'})
-            result_collected.send(
-                sender=unlistened, result=55,
+            results_collected.send(
+                sender=unlistened, results=[55],
                 context={'not': 'received'})
             assert len(limit.calls) == 1
             assert limit.calls == [
-                {'result': 99, 'context': {'should': 'receive'}},
+                {'results': [99], 'context': {'should': 'receive'}},
             ]
 
     def test_anonymous_enter_exit_calls_same_on_its_collector(self, limit_cls):
@@ -199,24 +199,24 @@ class TestLimitsListeningOnSignals(object):
 
         first_attached_handler = get_mock_listener()
         last_attached_handler = get_mock_listener()
-        result_collected.connect(first_attached_handler)
-        with patch.object(limit, 'handle_result') as handle_result_mock:
+        results_collected.connect(first_attached_handler)
+        with patch.object(limit, 'handle_results') as handle_result_mock:
             handle_result_mock.side_effect = MyException('foo')
             with pytest.raises(MyException) as excinfo:
                 with limit:
-                    result_collected.connect(last_attached_handler)
+                    results_collected.connect(last_attached_handler)
         assert handle_result_mock.called
-        result_collected.disconnect(first_attached_handler)
-        result_collected.disconnect(last_attached_handler)
+        results_collected.disconnect(first_attached_handler)
+        results_collected.disconnect(last_attached_handler)
         assert str(excinfo.value).endswith('foo')
-        method_name_in_stacktrace = 'handle_result'
+        method_name_in_stacktrace = 'handle_results'
         assert method_name_in_stacktrace in str(excinfo.value)
         assert first_attached_handler.called
         assert last_attached_handler.called
 
     def test_signal_handler_error_doesnt_hide_inner_ctx_error(self, limit_cls):
         limit = limit_cls()
-        with patch.object(limit, 'handle_result') as handle_result_mock:
+        with patch.object(limit, 'handle_results') as handle_result_mock:
             handle_result_mock.side_effect = Exception('handler error')
             with pytest.raises(Exception) as excinfo:
                 with limit:
@@ -262,6 +262,6 @@ class TestCreatingSettingsBasedLimits(object):
         limit = limit_cls(collector_id=id_, settings_based=True)
         settings.PERFORMANCE_LIMITS = {}
         assert limit.data == {}
-        limit.handle_result(result=1, context={})  # no error is raised
+        limit.handle_results(results=[1], context={})  # no error is raised
 
 # TODO: what to do w/ reports, where one'd listen on more than one collector?

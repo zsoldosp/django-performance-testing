@@ -3,7 +3,7 @@ from django.test.utils import get_runner
 from django.utils import six
 from django_performance_testing import test_runner as djpt_test_runner_module
 from django_performance_testing.reports import WorstReport
-from django_performance_testing.signals import result_collected
+from django_performance_testing.signals import results_collected
 import pytest
 from testapp.test_helpers import \
     WithId, run_testcase_with_django_runner, override_current_context
@@ -71,12 +71,14 @@ def test_after_running_django_testcases_report_is_printed():
     class SampleTestCase(unittest.TestCase):
 
         def test_one(self):
-            result_collected.send(
-                sender=WithId('whatever'), result=1, context={'test': 'one'})
+            results_collected.send(
+                sender=WithId('whatever'), results=[1],
+                context={'test': 'one'})
 
         def test_two(self):
-            result_collected.send(
-                sender=WithId('whatever'), result=2, context={'test': 'two'})
+            results_collected.send(
+                sender=WithId('whatever'), results=[2],
+                context={'test': 'two'})
     test_run = run_testcase_with_django_runner(SampleTestCase, nr_of_tests=2)
 
     # actual test assertions

@@ -1,5 +1,5 @@
 from django.conf import settings
-from django_performance_testing.signals import result_collected
+from django_performance_testing.signals import results_collected
 
 
 class BaseLimit(object):
@@ -43,18 +43,18 @@ class BaseLimit(object):
         return self
 
     def connect_for_results(self):
-        result_collected.connect(self.result_collected_handler)
+        results_collected.connect(self.results_collected_handler)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.is_anonymous():
             self.collector.__exit__(exc_type, exc_val, exc_tb)
-            result_collected.disconnect(self.result_collected_handler)
+            results_collected.disconnect(self.results_collected_handler)
 
     def is_anonymous(self):
         return self.collector_id is None
 
-    def result_collected_handler(
-            self, signal, sender, result, context, **kwargs):
+    def results_collected_handler(
+            self, signal, sender, results, context, **kwargs):
         assert kwargs == {}, 'expected no kwargs, but got {!r}'.format(kwargs)
         if not self.is_anonymous():
             if self.collector_id != sender.id_:
@@ -62,4 +62,4 @@ class BaseLimit(object):
         else:
             if self.collector != sender:
                 return
-        self.handle_result(result=result, context=context)
+        self.handle_results(results=results, context=context)
