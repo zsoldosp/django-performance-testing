@@ -1,4 +1,5 @@
 import copy
+import functools
 import pprint
 import traceback
 from django.db import connection
@@ -20,6 +21,7 @@ def setup_sending_before_clearing_queries_log_signal():
         connection.queries_log)
 
 
+@functools.total_ordering
 class QueryCountResult(object):
 
     def __init__(self, queries):
@@ -29,37 +31,18 @@ class QueryCountResult(object):
     def nr_of_queries(self):
         return len(self.queries)
 
-    def __cmp(self, other):
-        self_val = self.nr_of_queries
+    def _to_cmp_val(self, other):
         if type(other) in six.integer_types:
-            other_val = other
-        elif type(other) == QueryCountResult:
-            other_val = other.nr_of_queries
-        else:
-            raise NotImplementedError()
-        if self_val > other_val:
-            return 1
-        if self_val < other_val:
-            return -1
-        return 0
+            return other
+        if type(other) == QueryCountResult:
+            return other.nr_of_queries
+        raise NotImplementedError()
 
     def __lt__(self, other):
-        return self.__cmp(other) < 0
-
-    def __le__(self, other):
-        return self.__cmp(other) <= 0
+        return self.nr_of_queries < self._to_cmp_val(other)
 
     def __eq__(self, other):
-        return self.__cmp(other) == 0
-
-    def __ne__(self, other):
-        return not (self == other)
-
-    def __gt__(self, other):
-        return not (self <= other)
-
-    def __ge__(self, other):
-        return not (self < other)
+        return self.nr_of_queries == self._to_cmp_val(other)
 
     def __str__(self):
         return str(self.nr_of_queries)
