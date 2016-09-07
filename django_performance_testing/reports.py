@@ -43,7 +43,9 @@ class WorstReport(object):
                 dupes.add(name)
             last = name
         if dupes:
-            raise TypeError('Duplicate result name(s): {}'.format(dupes))
+            dupes_as_str = ', '.join(map(repr, dupes))
+            raise TypeError(
+                'Duplicate result name(s): {}'.format(dupes_as_str))
 
     def render(self, stream):
         if not self.data:

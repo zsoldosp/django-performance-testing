@@ -100,6 +100,6 @@ def test_report_can_deal_with_single_anonymous_result_not_with_more():
         report.handle_results_collected(
             signal=None, sender=WithId('foo'),
             results=[1, 2], context={})
-    assert 'Duplicate result name(s): {\'\'}' == str(excinfo.value)
+    assert 'Duplicate result name(s): \'\'' == str(excinfo.value)
     assert list(report.data.keys()) == ['foo']
     assert report.data['foo'][''].value == 9
