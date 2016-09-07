@@ -1,3 +1,4 @@
+import pytest
 from django.utils import six
 from django_performance_testing.signals import results_collected
 from django_performance_testing.reports import WorstReport, Result
@@ -85,3 +86,19 @@ def test_report_prints_nothing_when_there_is_no_data():
     stream = six.StringIO()
     report.render(stream)
     assert stream.getvalue() == ''
+
+
+def test_report_can_deal_with_single_anonymous_result_not_with_more():
+    report = WorstReport()
+    report.handle_results_collected(
+        signal=None, sender=WithId('foo'),
+        results=[9], context={})
+    assert list(report.data.keys()) == ['foo']
+    assert report.data['foo'][''].value == 9
+    with pytest.raises(TypeError) as excinfo:
+        report.handle_results_collected(
+            signal=None, sender=WithId('foo'),
+            results=[1, 2], context={})
+    assert 'Duplicate result name(s): {\'\'}' == str(excinfo.value)
+    assert list(report.data.keys()) == ['foo']
+    assert report.data['foo'][''].value == 9

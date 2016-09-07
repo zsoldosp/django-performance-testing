@@ -20,12 +20,30 @@ class WorstReport(object):
         self.data = {}
 
     def handle_results_collected(self, signal, sender, results, context, **kw):
+        name_value_pairs = list(map(self.to_name_value_pair, results))
+        self.ensure_unique_names(name_value_pairs)
         current = self.data.get(sender.id_, {}).get('')
         result = results[0]
         if current is None or current.value < result:
             self.data[sender.id_] = {
                 '': Result(value=result, context=copy.deepcopy(context))
             }
+
+    def to_name_value_pair(self, value):
+        return (
+            getattr(value, 'name', ''),
+            getattr(value, 'value', value)
+        )
+
+    def ensure_unique_names(self, name_value_pairs):
+        dupes = set()
+        last = None
+        for (name, value) in sorted(name_value_pairs):
+            if name == last:
+                dupes.add(name)
+            last = name
+        if dupes:
+            raise TypeError('Duplicate result name(s): {}'.format(dupes))
 
     def render(self, stream):
         if not self.data:
