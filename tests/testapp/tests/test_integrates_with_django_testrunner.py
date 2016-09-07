@@ -86,7 +86,7 @@ def test_after_running_django_testcases_report_is_printed():
     assert isinstance(test_runner.djpt_worst_report, WorstReport)
     report_data = test_runner.djpt_worst_report.data
     assert 'whatever' in list(report_data.keys())
-    whatever = report_data['whatever']
+    whatever = report_data['whatever']['']
     assert whatever.value == 2
     assert whatever.context == {'test': 'two'}
     printed = test_run['out']
@@ -125,7 +125,7 @@ def test_number_of_queries_per_test_method_can_be_limited(db, settings):
     assert isinstance(test_runner.djpt_worst_report, WorstReport)
     report_data = test_runner.djpt_worst_report.data
     assert 'test method' in list(report_data.keys())
-    worst_test_method = report_data['test method']
+    worst_test_method = report_data['test method']['']
     assert worst_test_method.value == 1
     assert worst_test_method.context == {
         'test name': [

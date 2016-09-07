@@ -9,18 +9,18 @@ def test_has_worst_value_and_its_context():
     results_collected.send(
         sender=WithId('id'), results=[4], context={'first': 'context'})
     assert len(report.data) == 1
-    assert report.data['id'].value == 4
-    assert report.data['id'].context == {'first': 'context'}
+    assert report.data['id'][''].value == 4
+    assert report.data['id'][''].context == {'first': 'context'}
     results_collected.send(
         sender=WithId('id'), results=[7], context={'2nd': 'context'})
     assert len(report.data) == 1
-    assert report.data['id'].value == 7
-    assert report.data['id'].context == {'2nd': 'context'}
+    assert report.data['id'][''].value == 7
+    assert report.data['id'][''].context == {'2nd': 'context'}
     results_collected.send(
         sender=WithId('id'), results=[5], context={'3rd': 'context'})
     assert len(report.data) == 1
-    assert report.data['id'].value == 7
-    assert report.data['id'].context == {'2nd': 'context'}
+    assert report.data['id'][''].value == 7
+    assert report.data['id'][''].context == {'2nd': 'context'}
 
 
 def test_has_copy_of_the_context():
@@ -29,10 +29,10 @@ def test_has_copy_of_the_context():
     results_collected.send(
         sender=WithId('foo'), results=[4], context=sent_context)
     assert len(report.data) == 1
-    assert report.data['foo'].context == {'sent': 'context'}
-    assert id(report.data['foo'].context) != id(sent_context)
+    assert report.data['foo'][''].context == {'sent': 'context'}
+    assert id(report.data['foo'][''].context) != id(sent_context)
     sent_context['another'] = 'entry'
-    assert report.data['foo'].context == {'sent': 'context'}
+    assert report.data['foo'][''].context == {'sent': 'context'}
 
 
 def test_handles_multiple_sender_ids_as_separate_items():
@@ -42,10 +42,10 @@ def test_handles_multiple_sender_ids_as_separate_items():
     results_collected.send(
         sender=WithId('id two'), results=['z'], context={'context': 'two'})
     assert len(report.data) == 2
-    assert report.data['id one'].value == 'a'
-    assert report.data['id one'].context == {'context': 'one'}
-    assert report.data['id two'].value == 'z'
-    assert report.data['id two'].context == {'context': 'two'}
+    assert report.data['id one'][''].value == 'a'
+    assert report.data['id one'][''].context == {'context': 'one'}
+    assert report.data['id two'][''].value == 'z'
+    assert report.data['id two'][''].context == {'context': 'two'}
 
 
 def test_result_repr_is_human_readable():
@@ -76,8 +76,8 @@ def test_report_printed_includes_all_needed_data():
     assert len(lines) == 3
     assert lines[0] == 'Worst Performing Items'
     assert lines[1] == \
-        "id 1 - querycount: 2 {'test': 'some.app.tests.TestCase.test_foo'}"
-    assert lines[2] == "id 2 - querycount: 9 {'foo': 'bar'}"
+        "id 1 - querycount: {'': 2 {'test': 'some.app.tests.TestCase.test_foo'}}"
+    assert lines[2] == "id 2 - querycount: {'': 9 {'foo': 'bar'}}"
 
 
 def test_report_prints_nothing_when_there_is_no_data():

@@ -20,11 +20,12 @@ class WorstReport(object):
         self.data = {}
 
     def handle_results_collected(self, signal, sender, results, context, **kw):
-        current = self.data.get(sender.id_)
+        current = self.data.get(sender.id_, {}).get('')
         result = results[0]
         if current is None or current.value < result:
-            self.data[sender.id_] = Result(
-                value=result, context=copy.deepcopy(context))
+            self.data[sender.id_] = {
+                '': Result(value=result, context=copy.deepcopy(context))
+            }
 
     def render(self, stream):
         if not self.data:
