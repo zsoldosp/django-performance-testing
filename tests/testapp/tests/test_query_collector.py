@@ -1,3 +1,4 @@
+import pytest
 from django.contrib.auth.models import Group
 from django.core import signals
 from django.db import connection, reset_queries
@@ -6,27 +7,39 @@ from django_performance_testing.signals import results_collected
 from testapp.test_helpers import capture_result_collected
 
 
-def test_captures_and_classifies_inserts(db):
-    expected_total_lo_limit = 1
-    expected_write = 1
-    expected_read = 0
+@pytest.mark.parametrize(
+    'code,total_lo_limit,write_lo_limit,read_lo_limit',
+    [
+        (lambda: Group.objects.create(name='foo'), 1, 1, 0),
+        (lambda: list(Group.objects.all()), 1, 0, 1),
+        (lambda: Group.objects.update(name='bar'), 1, 1, 0),
+        (lambda: Group.objects.all().delete(), 1, 1, 0),
+    ], ids=['insert', 'select', 'update', 'delete'])
+def test_captures_and_classifies_inserts(db, code,
+                                         total_lo_limit, write_lo_limit,
+                                         read_lo_limit):
+
+    # 'coz of new, 'smart' delete need an item
+    Group.objects.create(name='random')
     with capture_result_collected() as captured:
         with QueryCollector():
-            Group.objects.create(name='foo')
-    calls = list(
-        tuple((r.name, r.nr_of_queries) for r in d['results'])
-        for d in captured.calls)
-    assert len(calls) == 1
+            code()
+    assert len(captured.calls) == 1
+    results = list(r for r in captured.calls[0]['results'])
 
-    def calls_by_type(tp):
-        for args in calls[0]:
-            if args[0] == tp:
-                return args[1]
+    def result_by_name(tp):
+        for r in results:
+            if r.name == tp:
+                return r
         return None
 
-    assert calls_by_type('total') >= expected_total_lo_limit
-    assert calls_by_type('write') == expected_write
-    assert calls_by_type('read') == expected_read
+    def assert_lo_limit(name, lo_limit):
+        actual = result_by_name(name)
+        assert actual >= lo_limit, (name, actual.queries)
+
+    assert_lo_limit('total', total_lo_limit)
+    assert_lo_limit('write', write_lo_limit)
+    assert_lo_limit('read', read_lo_limit)
 
 
 def test_captures_queries(db):
