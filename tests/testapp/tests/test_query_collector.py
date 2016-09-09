@@ -3,6 +3,30 @@ from django.core import signals
 from django.db import connection, reset_queries
 from django_performance_testing.queries import QueryCollector
 from django_performance_testing.signals import results_collected
+from testapp.test_helpers import capture_result_collected
+
+
+def test_captures_and_classifies_inserts(db):
+    expected_total_lo_limit = 1
+    expected_write = 1
+    expected_read = 0
+    with capture_result_collected() as captured:
+        with QueryCollector():
+            Group.objects.create(name='foo')
+    calls = list(
+        tuple((r.name, r.nr_of_queries) for r in d['results'])
+        for d in captured.calls)
+    assert len(calls) == 1
+
+    def calls_by_type(tp):
+        for args in calls[0]:
+            if args[0] == tp:
+                return args[1]
+        return None
+
+    assert calls_by_type('total') >= expected_total_lo_limit
+    assert calls_by_type('write') == expected_write
+    assert calls_by_type('read') == expected_read
 
 
 def test_captures_queries(db):
@@ -45,7 +69,8 @@ def test_ctx_managers_can_be_nested(db):
 
     def capture_signals(signal, sender, results, context):
         captured.setdefault(sender, [])
-        captured[sender].append(results)
+        total, = (r for r in results if r.name == 'total')
+        captured[sender].append(total)
 
     results_collected.connect(capture_signals)
     try:
@@ -54,7 +79,7 @@ def test_ctx_managers_can_be_nested(db):
             list(Group.objects.all())
             with QueryCollector() as inner:
                 list(Group.objects.all())
-        assert {outer: [[3]], inner: [[1]]} == captured
+        assert {outer: [3], inner: [1]} == captured
     finally:
         results_collected.disconnect(capture_signals)
 

@@ -24,8 +24,9 @@ def setup_sending_before_clearing_queries_log_signal():
 @functools.total_ordering
 class QueryCountResult(object):
 
-    def __init__(self, queries):
+    def __init__(self, queries, name=None):
         self.queries = queries
+        self.name = name
 
     @property
     def nr_of_queries(self):
@@ -91,7 +92,7 @@ class QueryCollector(object):
         connection.force_debug_cursor = self.orig_force_debug_cursor
         self.store_queries()
         signal_responses = results_collected.send_robust(
-            sender=self, results=[QueryCountResult(self.queries)],
+            sender=self, results=self.get_results_to_send(),
             context=copy.deepcopy(context.current.data))
         if exc_type is None:
             for (receiver, response) in signal_responses:
@@ -103,6 +104,16 @@ class QueryCollector(object):
                     )
                     raise type(response)(error_msg)
                     raise response
+
+    def get_results_to_send(self):
+        by_type = dict(read=[], write=[])
+        for result in self.queries:
+            tp = classify_query(result['sql'])
+            by_type[tp].append(result)
+        by_type['total'] = self.queries
+        return list(
+            QueryCountResult(name=tp, queries=q)
+            for (tp, q) in six.iteritems(by_type))
 
     def store_queries(self):
         self.queries += connection.queries[self.nr_of_queries_when_entering:]
@@ -140,7 +151,7 @@ class QueryBatchLimit(BaseLimit):
     def handle_results(self, results, context):
         if self.count_limit is None:
             return
-        result = results[0]
+        result, = (r for r in results if r.name == 'total')
         if result <= self.count_limit:
             return
 

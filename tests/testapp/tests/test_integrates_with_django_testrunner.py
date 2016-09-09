@@ -125,7 +125,7 @@ def test_number_of_queries_per_test_method_can_be_limited(db, settings):
     assert isinstance(test_runner.djpt_worst_report, WorstReport)
     report_data = test_runner.djpt_worst_report.data
     assert 'test method' in list(report_data.keys())
-    worst_test_method = report_data['test method']['']
+    worst_test_method = report_data['test method']['total']
     assert worst_test_method.value == 1
     assert worst_test_method.context == {
         'test name': [
