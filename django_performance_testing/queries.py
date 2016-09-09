@@ -144,18 +144,12 @@ def classify_query(sql):
 class QueryBatchLimit(BaseLimit):
     collector_cls = QueryCollector
 
-    @property
-    def count_limit(self):
-        return self.data.get('count_limit', None)
-
     def handle_results(self, results, context):
         for result in results:
             self.handle_result(result, context)
 
     def handle_result(self, result, context):
         limit = self.data.get(result.name)
-        if limit is None and result.name == 'total':
-            limit = self.count_limit  # TODO: remove
         if limit is None:
             return
         if result <= limit:

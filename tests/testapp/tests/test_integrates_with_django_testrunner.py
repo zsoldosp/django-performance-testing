@@ -113,7 +113,7 @@ def test_number_of_queries_per_test_method_can_be_limited(db, settings):
             assert len(Group.objects.all()) == 0
 
     settings.PERFORMANCE_LIMITS = {
-        'test method': {'count_limit': 0}
+        'test method': {'total': 0}
     }
 
     test_run = run_testcase_with_django_runner(

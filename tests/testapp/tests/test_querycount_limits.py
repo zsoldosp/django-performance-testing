@@ -18,26 +18,26 @@ def test_it_is_a_properly_wired_up_base_limit():
 
 
 def test_when_exactly_limit_no__error():
-    limit = QueryBatchLimit(count_limit=1)
+    limit = QueryBatchLimit(total=1)
     limit.handle_results(results=[qcr(1)], context=None)
     assert True  # no exception raised
 
 
 def test_when_below_limit_no__error():
-    limit = QueryBatchLimit(count_limit=3)
+    limit = QueryBatchLimit(total=3)
     limit.handle_results(results=[qcr(0)], context=None)
     assert True  # no exception raised
 
 
 def test_when_above_limit_it_fails_with_meaningful_error_message():
-    limit = QueryBatchLimit(count_limit=2)
+    limit = QueryBatchLimit(total=2)
     with pytest.raises(ValueError) as excinfo:
         limit.handle_results(results=[qcr(3)], context=None)
     assert 'Too many (3) queries (limit: 2)' == str(excinfo.value)
 
 
 def test_given_context_it_is_included_in_error_message():
-    limit = QueryBatchLimit(count_limit=3)
+    limit = QueryBatchLimit(total=3)
     with pytest.raises(ValueError) as excinfo:
         limit.handle_results(
             results=[qcr(4)], context={'extra': 'context'})
@@ -48,7 +48,7 @@ def test_given_context_it_is_included_in_error_message():
 def test_integration_test_with_db(db):
     with pytest.raises(ValueError) as excinfo:
         with override_current_context() as ctx:
-            with QueryBatchLimit(count_limit=2):
+            with QueryBatchLimit(total=2):
                 ctx.enter(key='some', value='context')
                 list(Group.objects.all())
                 Group.objects.update(name='bar')

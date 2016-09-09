@@ -9,7 +9,7 @@ from django.core.urlresolvers import reverse
 def test_can_specify_limits_through_settings_for_django_test_client(
         db, settings, client, kwparams):
     settings.PERFORMANCE_LIMITS = {
-        'django.test.client.Client': {'count_limit': kwparams['limit']}}
+        'django.test.client.Client': {'total': kwparams['limit']}}
 
     url = reverse(
         'nr_of_queries_view', kwargs={'nr_of_queries': kwparams['queries']})
