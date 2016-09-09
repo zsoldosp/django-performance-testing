@@ -116,9 +116,17 @@ _query_token_to_classification = {
 
 
 def classify_query(sql):
-    without_query_prefix = sql.split(' = ')[1]
-    without_repr_quotes = without_query_prefix.split('\'')[1]
-    query_type_token = without_repr_quotes.split(' ')[0]
+    if sql.startswith('QUERY ='):  # django 1.8
+        without_query_prefix = sql.split(' = ')[1]
+    else:
+        without_query_prefix = sql
+
+    first_token = without_query_prefix.split(' ')[0]
+    pattern = '\''
+    if pattern in first_token:
+        query_type_token = first_token.split(pattern)[1]
+    else:
+        query_type_token = first_token
     return _query_token_to_classification[query_type_token]
 
 

@@ -33,3 +33,13 @@ def test_can_classify_update(sql):
 ], ids=['py2', 'py3'])
 def test_can_classify_delete(sql):
     assert 'write' == classify_query(sql)
+
+
+def test_can_classify_even_if_it_doesnt_have_the_query_prefix():
+    sql = 'SELECT "auth_group"."id", "auth_group"."name" FROM "auth_group"'
+    assert 'read' == classify_query(sql)
+
+
+def test_can_classify_even_if_it_has_quotes_inside():
+    sql = 'SELECT \'auth_group\'.\'id\', "auth_group"."name" FROM "auth_group"'
+    assert 'read' == classify_query(sql)
