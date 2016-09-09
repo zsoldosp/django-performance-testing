@@ -149,10 +149,16 @@ class QueryBatchLimit(BaseLimit):
         return self.data.get('count_limit', None)
 
     def handle_results(self, results, context):
-        if self.count_limit is None:
+        for result in results:
+            self.handle_result(result, context)
+
+    def handle_result(self, result, context):
+        limit = self.data.get(result.name)
+        if limit is None and result.name == 'total':
+            limit = self.count_limit  # TODO: remove
+        if limit is None:
             return
-        result, = (r for r in results if r.name == 'total')
-        if result <= self.count_limit:
+        if result <= limit:
             return
 
         context_msg = ''
@@ -160,5 +166,5 @@ class QueryBatchLimit(BaseLimit):
             context_msg = ' {}'.format(
                 pprint.pformat(context))
         error_msg = 'Too many ({}) queries (limit: {}){}'.format(
-            result, self.count_limit, context_msg)
+            result, limit, context_msg)  # TODO: add limit type here!
         raise ValueError(error_msg)

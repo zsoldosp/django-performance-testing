@@ -55,3 +55,22 @@ def test_integration_test_with_db(db):
                 Group.objects.create(name='group')
     assert 'Too many (3) queries (limit: 2) {\'some\': [\'context\']}' in \
         str(excinfo.value)
+
+
+def test_can_specify_typed_limits(db):
+    with QueryBatchLimit(write=0):
+        list(Group.objects.all())
+        list(Group.objects.all())
+        list(Group.objects.all())
+    with QueryBatchLimit(read=0):
+        Group.objects.update(name='foo')
+        Group.objects.create(name='bar')
+    with pytest.raises(ValueError) as excinfo:
+        with QueryBatchLimit(read=0):
+            list(Group.objects.all())
+    assert str(excinfo.value).endswith('Too many (1) queries (limit: 0)')
+    with pytest.raises(ValueError) as excinfo:
+        with QueryBatchLimit(write=1):
+            Group.objects.update(name='baz')
+            Group.objects.update(name='name')
+    assert str(excinfo.value).endswith('Too many (2) queries (limit: 1)')

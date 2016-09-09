@@ -5,7 +5,7 @@ except:
 import pytest
 from django_performance_testing.signals import results_collected
 from testapp.test_helpers import \
-    override_current_context, capture_result_collected
+    override_current_context, capture_result_collected, NameValue
 
 
 class TestCollectors(object):
@@ -262,6 +262,7 @@ class TestCreatingSettingsBasedLimits(object):
         limit = limit_cls(collector_id=id_, settings_based=True)
         settings.PERFORMANCE_LIMITS = {}
         assert limit.data == {}
-        limit.handle_results(results=[1], context={})  # no error is raised
+        limit.handle_results(
+            results=[NameValue('total', 1)], context={})  # no error is raised
 
 # TODO: what to do w/ reports, where one'd listen on more than one collector?
