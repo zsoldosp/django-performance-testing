@@ -119,7 +119,7 @@ def test_number_of_queries_per_test_method_can_be_limited(db, settings):
     test_run = run_testcase_with_django_runner(
         ATestCase, nr_of_tests=1, all_should_pass=False)
     out = test_run['out']
-    assert 'ValueError: Too many (1) queries (limit: 0)' in out
+    assert 'LimitViolationError: ' in out
 
     test_runner = test_run['test_runner']
     assert isinstance(test_runner.djpt_worst_report, WorstReport)

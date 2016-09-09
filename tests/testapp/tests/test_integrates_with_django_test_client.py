@@ -1,5 +1,6 @@
 import pytest
 from django.core.urlresolvers import reverse
+from django_performance_testing.core import LimitViolationError
 
 
 @pytest.mark.parametrize('kwparams', [
@@ -13,12 +14,8 @@ def test_can_specify_limits_through_settings_for_django_test_client(
 
     url = reverse(
         'nr_of_queries_view', kwargs={'nr_of_queries': kwparams['queries']})
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(LimitViolationError) as excinfo:
         getattr(client, kwparams['method'].lower())(url)
-    expected_error_message = \
-        'Too many ({queries}) queries (limit: {limit}) ' \
-        '{{\'Client.request\': [\'{method} {url}\']}}'.format(
-            url=url,
-            **kwparams
-        )
-    assert str(excinfo.value).endswith(expected_error_message)
+    expected_detail = '\'Client.request\': [\'{method} {url}\']}}'.format(
+            url=url, **kwparams)
+    assert expected_detail in str(excinfo.value)

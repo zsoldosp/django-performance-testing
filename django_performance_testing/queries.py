@@ -6,7 +6,7 @@ from django.db import connection
 from django.utils import six
 from django_performance_testing.signals import \
     results_collected, before_clearing_queries_log
-from django_performance_testing.core import BaseLimit
+from django_performance_testing.core import BaseLimit, LimitViolationError
 from django_performance_testing.utils import DelegatingProxy
 from django_performance_testing import context
 
@@ -161,4 +161,4 @@ class QueryBatchLimit(BaseLimit):
                 pprint.pformat(context))
         error_msg = 'Too many ({}) queries (limit: {}){}'.format(
             result, limit, context_msg)  # TODO: add limit type here!
-        raise ValueError(error_msg)
+        raise LimitViolationError(error_msg)

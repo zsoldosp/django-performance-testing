@@ -2,6 +2,10 @@ from django.conf import settings
 from django_performance_testing.signals import results_collected
 
 
+class LimitViolationError(RuntimeError):
+    pass
+
+
 class BaseLimit(object):
 
     def __init__(self, collector_id=None, settings_based=False, **data):
