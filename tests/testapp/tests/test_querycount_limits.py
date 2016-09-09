@@ -94,6 +94,24 @@ def test_integration_test_with_db(db):
         str(excinfo.value)
 
 
+def test_type_limit_checks_are_performed_in_alphabetic_order_of_type_name():
+    limit = QueryBatchLimit(c=3, b=2, a=1)
+    with pytest.raises(ValueError) as excinfo:
+        limit.handle_results(results=[
+            QueryCountResult(name='b', queries=range(2)),
+            QueryCountResult(name='a', queries=range(2)),
+            QueryCountResult(name='c', queries=range(2)),
+        ], context=None)
+    assert 'Too many (2) queries (limit: 1)' == str(excinfo.value)
+    with pytest.raises(ValueError) as excinfo:
+        limit.handle_results(results=[
+            QueryCountResult(name='a', queries=range(0)),
+            QueryCountResult(name='c', queries=range(2)),
+            QueryCountResult(name='b', queries=range(5)),
+        ], context=None)
+    assert 'Too many (5) queries (limit: 2)' == str(excinfo.value)
+
+
 def test_can_specify_typed_limits(db):
     with QueryBatchLimit(write=0):
         list(Group.objects.all())
