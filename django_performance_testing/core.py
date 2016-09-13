@@ -5,7 +5,8 @@ from django_performance_testing.signals import results_collected
 
 class LimitViolationError(RuntimeError):
 
-    def __init__(self, limit, actual, context, tb=None):
+    def __init__(self, name, limit, actual, context, tb=None):
+        self.name = name
         self.limit = limit
         self.actual = actual
         self.context = context
@@ -14,15 +15,15 @@ class LimitViolationError(RuntimeError):
         if context:
             context_msg = ' {}'.format(
                 pprint.pformat(context))
-        error_msg = 'Too many ({}) queries (limit: {}){}'.format(
-            actual, limit, context_msg)  # TODO: add limit type here!
+        error_msg = 'Too many ({}) {} queries (limit: {}){}'.format(
+            actual, name, limit, context_msg)  # TODO: add limit type here!
         if tb:
             error_msg += '\n{}'.format(tb)
         super(LimitViolationError, self).__init__(error_msg)
 
     def clone_with_more_info(self, orig_tb):
         return LimitViolationError(
-            limit=self.limit, actual=self.actual,
+            name=self.name, limit=self.limit, actual=self.actual,
             context=self.context, tb=orig_tb)
 
 

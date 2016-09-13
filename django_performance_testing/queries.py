@@ -160,4 +160,5 @@ class QueryBatchLimit(BaseLimit):
         if result <= limit:
             return
 
-        raise LimitViolationError(limit=limit, actual=result, context=context)
+        raise LimitViolationError(
+            name=result.name, limit=limit, actual=result, context=context)
