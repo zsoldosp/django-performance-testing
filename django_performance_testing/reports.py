@@ -54,9 +54,34 @@ class WorstReport(object):
     def render(self, stream):
         if not self.data:
             return
-        stream.write('Worst Performing Items\n')
-        for k in sorted(self.data.keys()):
-            stream.write('{}: {}\n'.format(k, self.data[k]))
+        stream.write('\nWorst Performing Items\n\n')
+        self.render_dict(stream=stream, d=self.data, indent=0, underline='=')
+
+    def render_dict(self, stream, d, indent, underline=None):
+        prefix = ' '*indent
+
+        for k in sorted(d.keys()):
+            v = d[k]
+            val, nextdict = self._to_val_nextdict(v)
+
+            if val:
+                val = ' {}'.format(val)
+            else:
+                val = ''
+            line = '{}{}:{}'.format(prefix, k, val)
+            stream.write('{}\n'.format(line))
+            if underline:
+                stream.write('{}\n'.format(underline*len(line)))
+            if nextdict:
+                self.render_dict(stream=stream, d=nextdict, indent=indent + 2)
+
+    def _to_val_nextdict(self, v):
+        if isinstance(v, Result):
+            return (v.value, v.context)
+        elif isinstance(v, dict):
+            return (None, v)
+        else:
+            return (v, None)
 
     def rendered(self):
         out = six.StringIO()

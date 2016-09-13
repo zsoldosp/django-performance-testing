@@ -63,23 +63,32 @@ def test_result_repr_is_human_readable():
     assert '(1, 2) {}'.format('\n'.join(lines)) == repr(result)
 
 
+expected_report_data = """
+Worst Performing Items
+
+id 1 - querycount:
+==================
+  two: 2
+    test: some.app.tests.TestCase.test_foo
+id 2 - querycount:
+==================
+  nine: 9
+    foo: bar
+""".strip()
+
+
 def test_report_printed_includes_all_needed_data():
     report = WorstReport()
     report.handle_results_collected(
         signal=None, sender=WithId('id 2 - querycount'),
-        results=[9], context={'foo': 'bar'})
+        results=[NameValue(name='nine', value=9)], context={'foo': 'bar'})
     report.handle_results_collected(
         signal=None, sender=WithId('id 1 - querycount'),
-        results=[2], context={'test': 'some.app.tests.TestCase.test_foo'})
+        results=[NameValue(name='two', value=2)],
+        context={'test': 'some.app.tests.TestCase.test_foo'})
     stream = six.StringIO()
     report.render(stream)
-    lines = stream.getvalue().strip().split('\n')
-    assert len(lines) == 3
-    assert lines[0] == 'Worst Performing Items'
-    assert lines[1] == \
-        "id 1 - querycount: {'': 2 " \
-        "{'test': 'some.app.tests.TestCase.test_foo'}}"
-    assert lines[2] == "id 2 - querycount: {'': 9 {'foo': 'bar'}}"
+    assert stream.getvalue().strip() == expected_report_data
 
 
 def test_report_prints_nothing_when_there_is_no_data():
