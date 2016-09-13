@@ -1,6 +1,5 @@
 import copy
 import functools
-import pprint
 import traceback
 from django.db import connection
 from django.utils import six
@@ -97,13 +96,19 @@ class QueryCollector(object):
         if exc_type is None:
             for (receiver, response) in signal_responses:
                 if isinstance(response,  BaseException):
+                    orig_tb = ''.join(
+                        traceback.format_tb(response.__traceback__))
                     error_msg = '{}{}: {}'.format(
-                        ''.join(traceback.format_tb(response.__traceback__)),
+                        orig_tb,
                         type(response).__name__,
                         str(response)
                     )
-                    raise type(response)(error_msg)
-                    raise response
+                    if hasattr(response, 'clone_with_more_info'):
+                        new_exc = response.clone_with_more_info(
+                            orig_tb=orig_tb)
+                    else:
+                        new_exc = type(response)(error_msg)
+                    raise new_exc
 
     def get_results_to_send(self):
         by_type = dict(read=[], write=[])
@@ -155,10 +160,4 @@ class QueryBatchLimit(BaseLimit):
         if result <= limit:
             return
 
-        context_msg = ''
-        if context:
-            context_msg = ' {}'.format(
-                pprint.pformat(context))
-        error_msg = 'Too many ({}) queries (limit: {}){}'.format(
-            result, limit, context_msg)  # TODO: add limit type here!
-        raise LimitViolationError(error_msg)
+        raise LimitViolationError(limit=limit, actual=result, context=context)

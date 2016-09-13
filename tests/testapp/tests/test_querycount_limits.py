@@ -57,29 +57,16 @@ above_limits_params = (
 
 
 @pytest.mark.parametrize(*above_limits_params)
-def test_when_above_limit_it_fails_with_meaningful_error_message(name,
-                                                                 limit,
-                                                                 queries):
+def test_when_above_limit_it_fails_with_correct_exc_args(name, limit, queries):
     assert limit < queries, 'assumption'
     qlimit = QueryBatchLimit(**{name: limit})
     with pytest.raises(LimitViolationError) as excinfo:
         qlimit.handle_results(
             results=wrapped_between_irrelevant_results(name, queries),
             context=None)
-    assert 'Too many ({}) queries (limit: {})'.format(queries, limit) \
-        == str(excinfo.value)
-
-
-@pytest.mark.parametrize(*above_limits_params)
-def test_given_context_it_is_included_in_error_message(name, limit, queries):
-    qlimit = QueryBatchLimit(**{name: limit})
-    with pytest.raises(LimitViolationError) as excinfo:
-        qlimit.handle_results(
-            results=wrapped_between_irrelevant_results(name, queries),
-            context={'extra': 'context'})
-    expected = 'Too many ({}) queries (limit: {}) '\
-               '{{\'extra\': \'context\'}}'.format(queries, limit)
-    assert expected == str(excinfo.value)
+    assert excinfo.value.limit == limit
+    assert excinfo.value.actual == queries
+    assert not excinfo.value.context
 
 
 def test_integration_test_with_db(db):
@@ -90,8 +77,9 @@ def test_integration_test_with_db(db):
                 list(Group.objects.all())
                 Group.objects.update(name='bar')
                 Group.objects.create(name='group')
-    assert 'Too many (3) queries (limit: 2) {\'some\': [\'context\']}' in \
-        str(excinfo.value)
+    assert excinfo.value.context == {'some': ['context']}
+    assert excinfo.value.actual == 3
+    assert excinfo.value.limit == 2
 
 
 def test_type_limit_checks_are_performed_in_alphabetic_order_of_type_name():
@@ -102,14 +90,17 @@ def test_type_limit_checks_are_performed_in_alphabetic_order_of_type_name():
             QueryCountResult(name='a', queries=range(2)),
             QueryCountResult(name='c', queries=range(2)),
         ], context=None)
-    assert 'Too many (2) queries (limit: 1)' == str(excinfo.value)
+    assert excinfo.value.actual == 2
+    assert excinfo.value.limit == 1
+
     with pytest.raises(LimitViolationError) as excinfo:
         limit.handle_results(results=[
             QueryCountResult(name='a', queries=range(0)),
             QueryCountResult(name='c', queries=range(2)),
             QueryCountResult(name='b', queries=range(5)),
         ], context=None)
-    assert 'Too many (5) queries (limit: 2)' == str(excinfo.value)
+    assert excinfo.value.actual == 5
+    assert excinfo.value.limit == 2
 
 
 def test_can_specify_typed_limits(db):
@@ -124,9 +115,14 @@ def test_can_specify_typed_limits(db):
     with pytest.raises(LimitViolationError) as excinfo:
         with QueryBatchLimit(read=0):
             list(Group.objects.all())
-    assert str(excinfo.value).endswith('Too many (1) queries (limit: 0)')
+    assert excinfo.value.context == {}
+    assert excinfo.value.actual == 1
+    assert excinfo.value.limit == 0
+
     with pytest.raises(LimitViolationError) as excinfo:
         with QueryBatchLimit(write=1):
             Group.objects.update(name='baz')
             Group.objects.update(name='name')
-    assert str(excinfo.value).endswith('Too many (2) queries (limit: 1)')
+    assert excinfo.value.context == {}
+    assert excinfo.value.actual == 2
+    assert excinfo.value.limit == 1

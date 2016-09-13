@@ -1,9 +1,29 @@
+import pprint
 from django.conf import settings
 from django_performance_testing.signals import results_collected
 
 
 class LimitViolationError(RuntimeError):
-    pass
+
+    def __init__(self, limit, actual, context, tb=None):
+        self.limit = limit
+        self.actual = actual
+        self.context = context
+
+        context_msg = ''
+        if context:
+            context_msg = ' {}'.format(
+                pprint.pformat(context))
+        error_msg = 'Too many ({}) queries (limit: {}){}'.format(
+            actual, limit, context_msg)  # TODO: add limit type here!
+        if tb:
+            error_msg += '\n{}'.format(tb)
+        super(LimitViolationError, self).__init__(error_msg)
+
+    def clone_with_more_info(self, orig_tb):
+        return LimitViolationError(
+            limit=self.limit, actual=self.actual,
+            context=self.context, tb=orig_tb)
 
 
 class BaseLimit(object):
