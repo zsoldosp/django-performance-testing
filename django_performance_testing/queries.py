@@ -81,7 +81,8 @@ class QueryCollector(object):
             self.queries_about_to_be_reset_handler)
         return self
 
-    def queries_about_to_be_reset_handler(self, signal, sender, queries):
+    def queries_about_to_be_reset_handler(self,
+                                          signal, sender, queries, **kwargs):
         self.store_queries()
         self.nr_of_queries_when_entering = 0
 
