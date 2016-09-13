@@ -43,3 +43,8 @@ def test_can_classify_even_if_it_doesnt_have_the_query_prefix():
 def test_can_classify_even_if_it_has_quotes_inside():
     sql = 'SELECT \'auth_group\'.\'id\', "auth_group"."name" FROM "auth_group"'
     assert 'read' == classify_query(sql)
+
+
+def test_when_cannot_classifies_error_includes_full_sql():
+    sql = 'unrecognizable sql statement'
+    assert 'other' == classify_query(sql)

@@ -2,6 +2,7 @@ import pytest
 from django.contrib.auth.models import Group
 from django.core import signals
 from django.db import connection, reset_queries
+from django.db.transaction import atomic
 from django_performance_testing.queries import QueryCollector
 from django_performance_testing.signals import results_collected
 from testapp.test_helpers import capture_result_collected
@@ -40,6 +41,20 @@ def test_captures_and_classifies_inserts(db, code,
     assert_lo_limit('total', total_lo_limit)
     assert_lo_limit('write', write_lo_limit)
     assert_lo_limit('read', read_lo_limit)
+
+
+def test_collects_other_sql_statements_too(db):
+    with capture_result_collected() as captured:
+        with QueryCollector():
+            with atomic():
+                Group.objects.create(name='sdf')
+
+    assert len(captured.calls) == 1
+    results = list(r for r in captured.calls[0]['results'])
+    other_sql_results = list(r for r in results if r.name == 'other')
+    assert len(other_sql_results) == 1
+    other_sqls = other_sql_results[0]
+    assert len(other_sqls.queries) == 2  # savepoint/release
 
 
 def test_captures_queries(db):

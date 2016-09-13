@@ -111,7 +111,7 @@ class QueryCollector(object):
                     raise new_exc
 
     def get_results_to_send(self):
-        by_type = dict(read=[], write=[])
+        by_type = dict(read=[], write=[], other=[])
         for result in self.queries:
             tp = classify_query(result['sql'])
             by_type[tp].append(result)
@@ -143,7 +143,7 @@ def classify_query(sql):
         query_type_token = first_token.split(pattern)[1]
     else:
         query_type_token = first_token
-    return _query_token_to_classification[query_type_token]
+    return _query_token_to_classification.get(query_type_token, 'other')
 
 
 class QueryBatchLimit(BaseLimit):
