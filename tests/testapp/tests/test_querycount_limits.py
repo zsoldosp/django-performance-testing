@@ -114,7 +114,6 @@ def test_can_specify_typed_limits(db):
             list(Group.objects.all())
             Group.objects.update(name='foo')
 
-        Group.objects.create(name='bar')
     with pytest.raises(LimitViolationError) as excinfo:
         with QueryBatchLimit(read=0):
             list(Group.objects.all())
