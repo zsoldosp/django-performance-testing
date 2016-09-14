@@ -1,6 +1,3 @@
-include AUTHORS.rst
-include CONTRIBUTING.rst
-include HISTORY.rst
 include LICENSE
 include README.rst
-recursive-include django_performance_testing *.html *.png *.gif *js *.css *jpg *jpeg *svg *py
+recursive-include django_performance_testing *py
