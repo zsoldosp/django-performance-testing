@@ -233,6 +233,10 @@ class TestCreatingSettingsBasedLimits(object):
             limit_cls(collector_id='some id', data={}, settings_based=True)
         assert 'Either provide data (kwargs) or settings_based, not both.' == \
             str(excinfo.value)
+        with pytest.raises(TypeError) as excinfo:
+            limit_cls(collector_id='some id', foo=1, settings_based=True)
+        assert 'Either provide data (kwargs) or settings_based, not both.' == \
+            str(excinfo.value)
 
     def test_values_based_on_setting_runtime_value(self, limit_cls, settings):
         id_ = 'runtime settings based limit'
