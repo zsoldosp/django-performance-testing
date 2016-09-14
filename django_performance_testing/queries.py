@@ -161,5 +161,8 @@ class QueryBatchLimit(BaseLimit):
         if result <= limit:
             return
 
+        name = result.name
+        if not self.is_anonymous():
+            name += ' (for {})'.format(self.collector_id)
         raise LimitViolationError(
-            name=result.name, limit=limit, actual=result, context=context)
+            name=name, limit=limit, actual=result, context=context)

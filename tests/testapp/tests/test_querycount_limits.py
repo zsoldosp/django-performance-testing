@@ -106,6 +106,15 @@ def test_type_limit_checks_are_performed_in_alphabetic_order_of_type_name():
     assert excinfo.value.name == 'b'
 
 
+def test_limit_exceeded_failure_message_includes_collector_name_if_exists(db):
+    with pytest.raises(LimitViolationError) as excinfo:
+        collector = QueryBatchLimit.collector_cls(id_='collector_id_included')
+        with QueryBatchLimit(collector_id='collector_id_included', read=0):
+            with collector:
+                list(Group.objects.all())
+    assert excinfo.value.name == 'read (for collector_id_included)'
+
+
 def test_can_specify_typed_limits(db):
     with pytest.raises(LimitViolationError) as excinfo:
         with QueryBatchLimit(write=0, read=3):
