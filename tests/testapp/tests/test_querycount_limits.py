@@ -80,6 +80,7 @@ def test_integration_test_with_db(db):
     assert excinfo.value.context == {'some': ['context']}
     assert excinfo.value.actual == 3
     assert excinfo.value.limit == 2
+    assert excinfo.value.name == 'total'
 
 
 def test_type_limit_checks_are_performed_in_alphabetic_order_of_type_name():
@@ -92,6 +93,7 @@ def test_type_limit_checks_are_performed_in_alphabetic_order_of_type_name():
         ], context=None)
     assert excinfo.value.actual == 2
     assert excinfo.value.limit == 1
+    assert excinfo.value.name == 'a'
 
     with pytest.raises(LimitViolationError) as excinfo:
         limit.handle_results(results=[
@@ -101,6 +103,7 @@ def test_type_limit_checks_are_performed_in_alphabetic_order_of_type_name():
         ], context=None)
     assert excinfo.value.actual == 5
     assert excinfo.value.limit == 2
+    assert excinfo.value.name == 'b'
 
 
 def test_can_specify_typed_limits(db):
@@ -118,6 +121,7 @@ def test_can_specify_typed_limits(db):
     assert excinfo.value.context == {}
     assert excinfo.value.actual == 1
     assert excinfo.value.limit == 0
+    assert excinfo.value.name == 'read'
 
     with pytest.raises(LimitViolationError) as excinfo:
         with QueryBatchLimit(write=1):
@@ -126,3 +130,4 @@ def test_can_specify_typed_limits(db):
     assert excinfo.value.context == {}
     assert excinfo.value.actual == 2
     assert excinfo.value.limit == 1
+    assert excinfo.value.name == 'write'
