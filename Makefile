@@ -55,7 +55,7 @@ docs:
 
 
 tag: TAG:=v${VERSION}
-tag: exit_code:=$(shell git ls-remote ${REMOTE_NAME} | grep -q tags/${TAG}; echo $$?)
+tag: exit_code=$(shell git ls-remote ${REMOTE_NAME} | grep -q tags/${TAG}; echo $$?)
 tag:
 ifeq ($(exit_code),0)
 	@echo "Tag ${TAG} already present"
