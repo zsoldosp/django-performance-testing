@@ -45,13 +45,12 @@ coverage:
 	coverage html
 	open htmlcov/index.html
 
+docs: outfile=readme-errors
 docs:
-	rm -f docs/django-performance-testing.rst
-	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ django-performance-testing
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs html
-	open docs/_build/html/index.html
+	rst2html.py README.rst > /dev/null 2> ${outfile}
+	cat ${outfile}
+	test 0 -eq `cat ${outfile} | wc -l`
+
 
 tag: VERSION=$(shell python -c"import django_performance_testing as m; print(m.__version__)")
 tag: TAG:=v${VERSION}
