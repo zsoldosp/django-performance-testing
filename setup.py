@@ -41,7 +41,6 @@ setup(
     keywords='django-performance-testing',
     classifiers=[
         'Development Status :: 4 - Beta',
-        'Framework :: Django',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
@@ -51,6 +50,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.5',
+        'Framework :: Django',
         'Framework :: Django :: 1.8',
         'Framework :: Django :: 1.9',
         'Framework :: Django :: 1.10',
