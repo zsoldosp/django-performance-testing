@@ -138,7 +138,61 @@ Release Notes
     * actual ``unittest`` ``test_<foo>`` methods
     * ``Template.render``
 
+.. contributing start
+
+Contributing
+------------
+
+As an open source project, we welcome contributions.
+
+The code lives on `github <https://github.com/PaesslerAG/django-performance-testing>`_.
+
+Reporting issues/improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Please open an `issue on github <https://github.com/PaesslerAG/django-performance-testing/issues/>`_
+or provide a `pull request <https://github.com/PaesslerAG/django-performance-testing/pulls/>`_
+whether for code or for the documentation.
+
+For non-trivial changes, we kindly ask you to open an issue, as it might be rejected.
+However, if the diff of a pull request better illustrates the point, feel free to make
+it a pull request anyway.
+
+Pull Requests
+~~~~~~~~~~~~~
+
+* for code changes
+
+  * it must have tests covering the change. You might be asked to cover missing scenarios
+  * the latest ``flake8`` will be run and shouldn't produce any warning
+  * if the change is significant enough, documentation has to be provided
+
+Setting up all Python versions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    sudo apt-get -y install software-properties-common
+    sudo add-apt-repository ppa:fkrull/deadsnakes
+    sudo apt-get update
+    for version in 3.3 3.5; do
+      py=python$version
+      sudo apt-get -y install ${py} ${py}-dev
+    done
+
+Code of Conduct
+~~~~~~~~~~~~~~~
+
+As it is a Django extension, it follows
+`Django's own Code of Conduct <https://www.djangoproject.com/conduct/>`_.
+As there is no mailing list yet, please just email one of the main authors
+(see ``setup.py`` file or `github contributors`_)
+
+
+.. contributing end
+
 
 .. _Travis: https://travis-ci.com/PaesslerAG/django-performance-testing
 .. _PyPi: http://pypi.python.org/simple/django-performance-testing
 .. _Github: https://github.com/PaesslerAG/django-performance-testing
+.. _github contributors: https://github.com/PaesslerAG/django-performance-testing/graphs/contributors
