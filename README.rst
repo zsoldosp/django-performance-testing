@@ -128,7 +128,7 @@ Release Notes
 
 * 0.1.0 - initial release
 
-  * supports Django 1.8, 1.9, 1.10 on python 2.7 and 3.4
+  * supports Django 1.8, 1.9, 1.10 on python 2.7, 3.3, 3.4, and 3.5
   * query counts are reported and can be limited, by categories -
     :code:`read`, :code:`write`, :code:`other`, and :code:`total` 
   * support ad-hoc limits by using it as a context manager
