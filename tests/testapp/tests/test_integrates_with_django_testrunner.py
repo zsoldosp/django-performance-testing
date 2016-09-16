@@ -127,8 +127,10 @@ def test_number_of_queries_per_test_method_can_be_limited(db, settings):
     assert 'test method' in list(report_data.keys())
     worst_test_method = report_data['test method']['total']
     assert worst_test_method.value == 1
-    assert worst_test_method.context == {
-        'test name': [
-            'test_foo (testapp.tests.test_integrates_with_django_testrunner.'
-            'ATestCase)']}
+    assert len(worst_test_method.context) == 1
+    worst_test = worst_test_method.context['test name']
+    assert len(worst_test) == 1
+    assert worst_test[0].startswith(
+        'test_foo (testapp.tests.test_integrates_with_django_testrunner.')
+    assert worst_test[0].endswith('.ATestCase)')
     assert out.endswith(test_runner.djpt_worst_report.rendered())
