@@ -4,19 +4,21 @@ django-performance-testing
 
 Performance testing for Django through your automated tests.
 
-Performance testing is often left to do towards the end of a project,
-if at all. In other aspects of software development, we have learned already
-that more frequent feedback on smaller chunks of changes is much better,
+Don't leave performance testing until the end of the project! We have learned
+already that more frequent feedback on smaller chunks of changes is much better,
 e.g.: TDD, CI, DevOps, Agile, etc.
 
-This library tries to do the same for performance testing - integrating it
-seemlessy into your existing development cycle, without requiring you to do
-anything differently than before (beyond fixing failures, of course!).
+This library helps by providing performance testing from the start -
+integrating it seemlessy into your existing development cycle, without
+requiring changes to your development workflow.
 
 Unlike regular performance testing tools (`ab`, `tsung`, etc.), this libary
 relies on indirect (proxy) indicators to performence - e.g.: the number of
 queries executed. It's a good rule of thumb that the more SQL there is, the
-slower it will be.
+slower it will be. And this way "performance" testing won't be slower than your
+normal tests! (Disclimer: while this tool is useful, classic performance
+testing is still recommended!)
+
 
 Setup
 =====
