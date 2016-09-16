@@ -1,4 +1,4 @@
-===========================
+==========================
 django-performance-testing
 ==========================
 
@@ -23,21 +23,19 @@ testing is still recommended!)
 Setup
 =====
 
-* install it via `pip install django-performance-testing`
-* add it to your settings
-  ```
-  settings.INSTALLED_APPS = [
-     ...
-     'django_performance_testing',
-     ...
-  ]
-  ```
-  and it auto-registers itself
+* install it via :code:`pip install django-performance-testing`
+* add it to your settings and it auto-registers itself
+  ::
+      settings.INSTALLED_APPS = [
+         ...
+         'django_performance_testing',
+         ...
+      ]
 * set your limits (see below for detail)
-* and run your test `manage.py tes <your app>`
+* and run your test :code:`manage.py test <your app>`
 
 For any limit violations, there will be a test failure, and at the end, a
-_Worst Items Report_ will be printed.
+`Worst Items Report` will be printed.
 
 Supported Limits
 ================
@@ -46,14 +44,15 @@ Querycount
 ----------
 
 Sets the limit in the number of queries executed inside the given scope.
-Limits can be set for the `total` number of queries, or more specifically,
-based on types of queries - `read` (`SELECT`), `write` (`INSERT`, `UPDATE`,
-`DELETE`), and `other` (e.g.: transaction (savepoints)).
+Limits can be set for the :code:`total` number of queries, or more specifically,
+based on types of queries - :code:`read` (:code:`SELECT`), :code:`write` (
+:code:`INSERT`, :code:`UPDATE`, :code:`DELETE`), and :code:`other` (e.g.:
+transaction (savepoints)).
 
-When no (or `None`) value is provided for a given limit type, that is ignored
-during the check, as if there were no limit rules for. Thus it's possible to only
-focus on no write queries, while ignoring all the other queries that might be
-executed.
+When no (or :code:`None`) value is provided for a given limit type, that is 
+ignored during the check, as if there were no limit rules for. Thus it's 
+possible to only focus on no write queries, while ignoring all the other queries
+that might be executed.
 
 Setting Limits
 ==============
@@ -62,33 +61,32 @@ Predefined limit points
 -----------------------
 
 Following are the keys that are currently supported for
-`settings.PERFORMANCE_LIMITS` dictionary
+:code:`settings.PERFORMANCE_LIMITS` dictionary
 
-* `django.test.client.Client` - every call to its `request` method is limited,
-  i.e.: `GET`, `POST`, etc.
-* `Template.render` - every `render` call is checked for limits. Note: it's
-  recursive, i.e.: `include` and similar tags result in a check
-* `test method` - the actual various `unittest` test methods that you write
-  for your app
+* :code:`django.test.client.Client` - every call to its :code:`request` method
+  is limited, i.e.: :code:`GET`, :code:`POST`, etc.
+* :code:`Template.render` - every :code:`render` call is checked for limits.
+  Note: it's   recursive, i.e.: `include` and similar tags result in a check
+* :code:`test method` - the actual various :code:`unittest` test methods that
+  you write for your app
 
 Sample Settings
 ---------------
 
-```
-PERFORMANCE_LIMITS = {
-    'test method': {'total': 50},  # want to keep the tests focused
-    'django.test.client.Client': {
-        'read': 30,
-        'write': 8,  # do not create complex object structures in the web
-                     # process
+.. code:: python
 
-    },
-    'Template.render': {
-        'write': 0,  # rendering a template should never write to the database!
-        'read': 0
+    PERFORMANCE_LIMITS = {
+        'test method': {'total': 50},  # want to keep the tests focused
+        'django.test.client.Client': {
+            'read': 30,
+            'write': 8,  # do not create complex object structures in the web
+                         # process
+        },
+        'Template.render': {
+            'write': 0,  # rendering a template should never write to the database!
+            'read': 0
+        }
     }
-}
-```
 
 Ad-Hoc Limits
 =============
@@ -98,31 +96,31 @@ and trying to improve sections of the code, more granular limits are needed.
 To support that, the limits can be used as context managers, e.g.:
 
 
-```
-from django_performance_testing.queries import QueryBatchLimit
-...
+.. code::
 
-def my_method_with_too_many_queries(request):
-    with QueryBatchLimit(write=0, read=10):  # initialize form
-        form = MyForm(request.POST)
-    with QueryBatchLimit(write=0, read=3):  # validate it
-        is_valid = form.is_valid()
-    if is_valid:
-        with QueryBatchLimit(read=0, write=8):  # save it
-            form.save()
-        with QueryBatchLimit(read=0, write=0):  # redirect
-            return HttpResponseRedirect(...)
-    else:
-        with QueryBatchLimit(write=0):  # render form
-            return form_invalid(form)
-```
+    from django_performance_testing.queries import QueryBatchLimit
+    ...
+    
+    def my_method_with_too_many_queries(request):
+        with QueryBatchLimit(write=0, read=10):  # initialize form
+            form = MyForm(request.POST)
+        with QueryBatchLimit(write=0, read=3):  # validate it
+            is_valid = form.is_valid()
+        if is_valid:
+            with QueryBatchLimit(read=0, write=8):  # save it
+                form.save()
+            with QueryBatchLimit(read=0, write=0):  # redirect
+                return HttpResponseRedirect(...)
+        else:
+            with QueryBatchLimit(write=0):  # render form
+                return form_invalid(form)
 
 Infrastructure links
 ====================
 
-* `CI Builder`_
+* `Travis`_
 * the package on  `PyPi`_
-* the  `Git repo`_
+* `Github`
 
 Release Notes
 =============
@@ -131,15 +129,15 @@ Release Notes
 
   * supports Django 1.8, 1.9, 1.10 on python 2.7 and 3.4
   * query counts are reported and can be limited, by categories -
-    `read`, `write`, `other`, and `total` 
+    :code:`read`, :code:`write`, :code:`other`, and :code:`total` 
   * support ad-hoc limits by using it as a context manager
   * predefined limits support:
 
-    * `django.test.client.Client` - all calls to its request method
-    * actual `unittest` `test_<foo>` methods
-    * `Template.render`
+    * :code:`django.test.client.Client` - all calls to its request method
+    * actual :code:`unittest` :code:`test_<foo>` methods
+    * :code:`Template.render`
 
 
-.. _CI Builder: https://travis-ci.com/PaesslerAG/django-performance-testing
+.. _Travis: https://travis-ci.com/PaesslerAG/django-performance-testing
 .. _PyPi: http://pypi.python.org/simple/django-performance-testing
-.. _Git: https://github.com/PaesslerAG/django-performance-testing
+.. _Github: https://github.com/PaesslerAG/django-performance-testing
