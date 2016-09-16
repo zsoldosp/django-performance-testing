@@ -26,6 +26,7 @@ Setup
 * install it via :code:`pip install django-performance-testing`
 * add it to your settings and it auto-registers itself
   ::
+
       settings.INSTALLED_APPS = [
          ...
          'django_performance_testing',
