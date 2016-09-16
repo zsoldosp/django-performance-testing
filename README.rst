@@ -12,7 +12,7 @@ This library helps by providing performance testing from the start -
 integrating it seemlessy into your existing development cycle, without
 requiring changes to your development workflow.
 
-Unlike regular performance testing tools (:code:`ab`, :code:`tsung`, etc.), this
+Unlike regular performance testing tools (``ab``, ``tsung``, etc.), this
 libary relies on indirect (proxy) indicators to performence - e.g.: the number
 of queries executed. It's a good rule of thumb that the more SQL there is, the
 slower it will be. And this way "performance" testing won't be slower than your
@@ -23,7 +23,7 @@ testing is still recommended!)
 Setup
 =====
 
-* install it via :code:`pip install django-performance-testing`
+* install it via ``pip install django-performance-testing``
 * add it to your settings and it auto-registers itself
   ::
 
@@ -33,7 +33,7 @@ Setup
          ...
       ]
 * set your limits (see below for detail)
-* and run your test :code:`manage.py test <your app>`
+* and run your test ``manage.py test <your app>``
 
 For any limit violations, there will be a test failure, and at the end, a
 `Worst Items Report` will be printed.
@@ -45,12 +45,12 @@ Querycount
 ----------
 
 Sets the limit in the number of queries executed inside the given scope.
-Limits can be set for the :code:`total` number of queries, or more specifically,
-based on types of queries - :code:`read` (:code:`SELECT`), :code:`write` (
-:code:`INSERT`, :code:`UPDATE`, :code:`DELETE`), and :code:`other` (e.g.:
+Limits can be set for the ``total`` number of queries, or more specifically,
+based on types of queries - ``read`` (``SELECT``), ``write`` (
+``INSERT``, ``UPDATE``, ``DELETE``), and ``other`` (e.g.:
 transaction (savepoints)).
 
-When no (or :code:`None`) value is provided for a given limit type, that is 
+When no (or ``None``) value is provided for a given limit type, that is 
 ignored during the check, as if there were no limit rules for. Thus it's 
 possible to only focus on no write queries, while ignoring all the other queries
 that might be executed.
@@ -62,13 +62,13 @@ Predefined limit points
 -----------------------
 
 Following are the keys that are currently supported for
-:code:`settings.PERFORMANCE_LIMITS` dictionary
+``settings.PERFORMANCE_LIMITS`` dictionary
 
-* :code:`django.test.client.Client` - every call to its :code:`request` method
-  is limited, i.e.: :code:`GET`, :code:`POST`, etc.
-* :code:`Template.render` - every :code:`render` call is checked for limits.
+* ``django.test.client.Client`` - every call to its ``request`` method
+  is limited, i.e.: ``GET``, ``POST``, etc.
+* ``Template.render`` - every ``render`` call is checked for limits.
   Note: it's   recursive, i.e.: `include` and similar tags result in a check
-* :code:`test method` - the actual various :code:`unittest` test methods that
+* ``test method`` - the actual various ``unittest`` test methods that
   you write for your app
 
 Sample Settings
@@ -130,13 +130,13 @@ Release Notes
 
   * supports Django 1.8, 1.9, 1.10 on python 2.7, 3.3, 3.4, and 3.5
   * query counts are reported and can be limited, by categories -
-    :code:`read`, :code:`write`, :code:`other`, and :code:`total` 
+    ``read``, ``write``, ``other``, and ``total`` 
   * support ad-hoc limits by using it as a context manager
   * predefined limits support:
 
-    * :code:`django.test.client.Client` - all calls to its request method
-    * actual :code:`unittest` :code:`test_<foo>` methods
-    * :code:`Template.render`
+    * ``django.test.client.Client`` - all calls to its request method
+    * actual ``unittest`` ``test_<foo>`` methods
+    * ``Template.render``
 
 
 .. _Travis: https://travis-ci.com/PaesslerAG/django-performance-testing
