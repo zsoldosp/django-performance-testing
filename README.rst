@@ -74,7 +74,7 @@ Following are the keys that are currently supported for
 Sample Settings
 ---------------
 
-.. code:: python
+::
 
     PERFORMANCE_LIMITS = {
         'test method': {'total': 50},  # want to keep the tests focused
@@ -97,7 +97,7 @@ and trying to improve sections of the code, more granular limits are needed.
 To support that, the limits can be used as context managers, e.g.:
 
 
-.. code::
+::
 
     from django_performance_testing.queries import QueryBatchLimit
     ...
