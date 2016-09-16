@@ -1,6 +1,7 @@
 .PHONY: clean-pyc clean-build docs clean-tox
 PYPI_SERVER?=http://pypi.python.org/simple/
 SHELL=/bin/bash
+VERSION=$(shell python -c"import django_performance_testing as m; print(m.__version__)")
 
 help:
 	@echo "clean-build - remove build artifacts"
@@ -52,7 +53,6 @@ docs:
 	test 0 -eq `cat ${outfile} | wc -l`
 
 
-tag: VERSION=$(shell python -c"import django_performance_testing as m; print(m.__version__)")
 tag: TAG:=v${VERSION}
 tag: exit_code:=$(shell git ls-remote origin | grep -q tags/${TAG}; echo $$?)
 tag:
@@ -62,11 +62,16 @@ else
 	git tag -a ${TAG} -m"${TAG}"; git push --tags origin
 endif
 
-release: clean tag
+package: clean
+	python setup.py sdist
+	python setup.py bdist_wheel
+
+release: whl=dist/django_performance_testing-${VERSION}-py2.py3-none-any.whl
+release: clean package tag
+	test -f ${whl}
 	echo "if the release fails, setup a ~/pypirc file as per https://docs.python.org/2/distutils/packageindex.html#pypirc"
-	python setup.py register -r ${PYPI_SERVER}
-	python setup.py sdist upload -r ${PYPI_SERVER}
-	python setup.py bdist_wheel upload -r ${PYPI_SERVER}
+	twine register ${whl} -r ${PYPI_SERVER}
+	twine upload dist/* -r ${PYPI_SERVER}
 
 sdist: clean
 	python setup.py sdist
