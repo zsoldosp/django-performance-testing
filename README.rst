@@ -12,9 +12,9 @@ This library helps by providing performance testing from the start -
 integrating it seemlessy into your existing development cycle, without
 requiring changes to your development workflow.
 
-Unlike regular performance testing tools (`ab`, `tsung`, etc.), this libary
-relies on indirect (proxy) indicators to performence - e.g.: the number of
-queries executed. It's a good rule of thumb that the more SQL there is, the
+Unlike regular performance testing tools (:code:`ab`, :code:`tsung`, etc.), this
+libary relies on indirect (proxy) indicators to performence - e.g.: the number
+of queries executed. It's a good rule of thumb that the more SQL there is, the
 slower it will be. And this way "performance" testing won't be slower than your
 normal tests! (Disclimer: while this tool is useful, classic performance
 testing is still recommended!)
@@ -119,8 +119,8 @@ Infrastructure links
 ====================
 
 * `Travis`_
-* the package on  `PyPi`_
-* `Github`
+* `PyPi`_
+* `Github`_
 
 Release Notes
 =============
