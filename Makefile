@@ -1,5 +1,5 @@
 .PHONY: clean-pyc clean-build docs clean-tox
-PYPI_SERVER?=http://pypi.python.org/simple/
+PYPI_SERVER?=pypi
 SHELL=/bin/bash
 VERSION=$(shell python -c"import django_performance_testing as m; print(m.__version__)")
 REMOTE_NAME?=origin
