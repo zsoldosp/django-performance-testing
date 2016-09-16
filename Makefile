@@ -2,6 +2,7 @@
 PYPI_SERVER?=http://pypi.python.org/simple/
 SHELL=/bin/bash
 VERSION=$(shell python -c"import django_performance_testing as m; print(m.__version__)")
+REMOTE_NAME?=origin
 
 help:
 	@echo "clean-build - remove build artifacts"
@@ -11,7 +12,7 @@ help:
 	@echo "testall - run tests on every Python version with tox"
 	@echo "coverage - check code coverage quickly with the default Python"
 	@echo "docs - generate Sphinx HTML documentation, including API docs"
-	@echo "tag - tag the current version and push it to origin"
+	@echo "tag - tag the current version and push it to REMOTE_NAME"
 	@echo "release - package and upload a release"
 	@echo "sdist - package"
 
@@ -54,12 +55,12 @@ docs:
 
 
 tag: TAG:=v${VERSION}
-tag: exit_code:=$(shell git ls-remote origin | grep -q tags/${TAG}; echo $$?)
+tag: exit_code:=$(shell git ls-remote ${REMOTE_NAME} | grep -q tags/${TAG}; echo $$?)
 tag:
 ifeq ($(exit_code),0)
 	@echo "Tag ${TAG} already present"
 else
-	git tag -a ${TAG} -m"${TAG}"; git push --tags origin
+	git tag -a ${TAG} -m"${TAG}"; git push --tags ${REMOTE_NAME}
 endif
 
 package: clean
