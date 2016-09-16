@@ -2,7 +2,7 @@
 django-performance-testing
 ==========================
 
-Performance testing for Django through your automated tests.
+.. contents:: Performance testing for Django through your automated tests!
 
 Don't leave performance testing until the end of the project! We have learned
 already that more frequent feedback on smaller chunks of changes is much better,
