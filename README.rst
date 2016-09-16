@@ -2,6 +2,9 @@
 django-performance-testing
 ==========================
 
+.. image:: https://travis-ci.org/PaesslerAG/django-performance-testing.svg?branch=master
+        :target: https://travis-ci.org/PaesslerAG/django-performance-testing
+
 .. contents:: Performance testing for Django through your automated tests!
 
 Don't leave performance testing until the end of the project! We have learned
@@ -116,13 +119,6 @@ To support that, the limits can be used as context managers, e.g.:
             with QueryBatchLimit(write=0):  # render form
                 return form_invalid(form)
 
-Infrastructure links
-====================
-
-* `Travis`_
-* `PyPi`_
-* `Github`_
-
 Release Notes
 =============
 
@@ -192,7 +188,4 @@ As there is no mailing list yet, please just email one of the main authors
 .. contributing end
 
 
-.. _Travis: https://travis-ci.com/PaesslerAG/django-performance-testing
-.. _PyPi: http://pypi.python.org/simple/django-performance-testing
-.. _Github: https://github.com/PaesslerAG/django-performance-testing
 .. _github contributors: https://github.com/PaesslerAG/django-performance-testing/graphs/contributors
