@@ -21,7 +21,7 @@ slower it will be.
 Setup
 =====
 
-* install it via `pip install-django-performance-testing`
+* install it via `pip install django-performance-testing`
 * add it to your settings
   ```
   settings.INSTALLED_APPS = [
