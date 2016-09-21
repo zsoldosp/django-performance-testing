@@ -122,6 +122,11 @@ To support that, the limits can be used as context managers, e.g.:
 Release Notes
 =============
 
+* 0.1.1 - bugfix release
+
+  * bugfix: attributes set by on test methods (e.g.: ``@unittest.skip``)
+    are now recognizable again and not lost due to the library's patching
+
 * 0.1.0 - initial release
 
   * supports Django 1.8, 1.9, 1.10 on python 2.7, 3.3, 3.4, and 3.5
