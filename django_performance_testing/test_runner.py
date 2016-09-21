@@ -30,6 +30,15 @@ class DjptWrappedTestSuiteAddTest(object):
         self.orig_suite_add_test = orig_suite_add_test
 
 
+class __NeededToFindInstanceMethodType(object):
+
+    def some_method(self):
+        pass
+
+
+instancemethod = type(__NeededToFindInstanceMethodType().some_method)
+
+
 def get_runner_with_djpt_mixin(*a, **kw):
     test_runner_cls = orig_get_runner(*a, **kw)
 
@@ -40,15 +49,12 @@ def get_runner_with_djpt_mixin(*a, **kw):
 
         test_runner = DjptTestRunner
 
-        def run_tests(self, *a, **kw):
-            return super(DjptDjangoTestRunner, self).run_tests(*a, **kw)
-
     def addTest(suite_self, test):
         retval = orig_suite_addTest(suite_self, test)
         is_test = hasattr(test, '_testMethodName')
         if is_test:
             test_method = getattr(test, test._testMethodName)
-            if test_method.__code__ != BeforeAfterWrapper.wrap.__code__:
+            if isinstance(test_method, instancemethod):  # not patched yet
                 test_ctx = scoped_context(key='test name', value=str(test))
                 test_method_qcc = \
                     DjptTestRunnerMixin.test_method_querycount_collector
