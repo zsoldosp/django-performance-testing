@@ -1,14 +1,25 @@
+from functools import wraps
+
+
+class run_with(object):
+    def __init__(self, ctx_manager):
+        self.ctx_manager = ctx_manager
+
+    def __call__(self, test_fn):
+        @wraps(test_fn)
+        def with_ctx_mngr_wrapper(*a, **kw):
+            with self.ctx_manager:
+                return test_fn(*a, **kw)
+        return with_ctx_mngr_wrapper
+
+
 class BeforeAfterWrapper(object):
     def __init__(self, wrapped_self, method_to_wrap_name, context_manager):
-        self.wrapped_self = wrapped_self
-        self.method_to_wrap_name = method_to_wrap_name
-        self.orig_method = getattr(self.wrapped_self, self.method_to_wrap_name)
-        self.context_manager = context_manager
-        setattr(self.wrapped_self, self.method_to_wrap_name, self.wrap)
-
-    def wrap(self, *a, **kw):
-        with self.context_manager:
-            return self.orig_method(*a, **kw)
+        method_to_wrap = getattr(wrapped_self, method_to_wrap_name)
+        setattr(
+            wrapped_self, method_to_wrap_name,
+            run_with(context_manager)(method_to_wrap)
+        )
 
 
 class DelegatingProxy(object):
