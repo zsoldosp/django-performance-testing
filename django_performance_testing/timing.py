@@ -1,13 +1,14 @@
 from time import time
-from django_performance_testing.signals import results_collected
-# from django_performance_testing import context
+from django_performance_testing.core import BaseCollector
 
 
-class TimeCollector(object):
+class TimeCollector(BaseCollector):
+
+    _ids = set()
+
     def __enter__(self):
         self.start = time()
+        return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        results_collected.send_robust(
-            sender=self, results=time() - self.start,
-            context=None)
+    def get_results_to_send(self):
+        return [time() - self.start]
