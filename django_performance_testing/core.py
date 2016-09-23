@@ -1,6 +1,9 @@
-import pprint
+import copy
 from django.conf import settings
+from django_performance_testing import context
 from django_performance_testing.signals import results_collected
+import pprint
+import traceback
 
 
 class LimitViolationError(RuntimeError):
@@ -25,6 +28,57 @@ class LimitViolationError(RuntimeError):
         return LimitViolationError(
             name=self.name, limit=self.limit, actual=self.actual,
             context=self.context, tb=orig_tb)
+
+
+class BaseCollector(object):
+
+    def __init__(self, id_=None):
+        self.id_ = id_
+        self.ensure_id_is_unique()
+
+    def ensure_id_is_unique(self):
+        if self.should_have_unique_id():
+            if self.id_ in self._ids:
+                id_ = self.id_
+                self.id_ = None
+                raise TypeError(
+                        'There is already a collector named {!r}'.format(id_))
+            self._ids.add(self.id_)
+
+    def __del__(self):
+        if self.should_have_unique_id():
+            self._ids.remove(self.id_)
+
+    def should_have_unique_id(self):
+        return self.id_ is not None
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.before_exit()
+        signal_responses = results_collected.send_robust(
+            sender=self, results=self.get_results_to_send(),
+            context=copy.deepcopy(context.current.data))
+        if exc_type is None:
+            for (receiver, response) in signal_responses:
+                if isinstance(response,  BaseException):
+                    orig_tb = ''.join(
+                        traceback.format_tb(response.__traceback__))
+                    error_msg = '{}{}: {}'.format(
+                        orig_tb,
+                        type(response).__name__,
+                        str(response)
+                    )
+                    if hasattr(response, 'clone_with_more_info'):
+                        new_exc = response.clone_with_more_info(
+                            orig_tb=orig_tb)
+                    else:
+                        new_exc = type(response)(error_msg)
+                    raise new_exc
+
+    def get_results_to_send(self):
+        raise NotImplementedError()
+
+    def before_exit(self):
+        pass
 
 
 class BaseLimit(object):
