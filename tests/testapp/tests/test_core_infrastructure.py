@@ -53,6 +53,54 @@ class TestCollectors(object):
         assert received_context['extra'] == ctx.data['extra']
         assert id(received_context['extra']) != id(ctx.data['extra'])
 
+    def test_signals_all_listeners_reports_first_failure(self, collector_cls):
+        collector = collector_cls()
+
+        class MyException(Exception):
+            pass
+
+        def get_mock_listener():
+            m = Mock()
+            m.return_value = None
+            return m
+
+        first_attached_handler = get_mock_listener()
+
+        def second_handler_that_will_fail(*a, **kw):
+            raise MyException('foo')
+        last_attached_handler = get_mock_listener()
+
+        listeners = [
+            first_attached_handler, second_handler_that_will_fail,
+            last_attached_handler]
+        for l in listeners:
+            results_collected.connect(l)
+        try:
+            with pytest.raises(MyException) as excinfo:
+                with collector:
+                    pass
+            assert str(excinfo.value).endswith('foo')
+            method_name_in_stacktrace = 'second_handler_that_will_fail'
+            assert method_name_in_stacktrace in str(excinfo.value)
+            assert first_attached_handler.called
+            assert last_attached_handler.called
+        finally:
+            for l in listeners:
+                results_collected.disconnect(l)
+
+    def test_signal_handler_error_doesnt_hide_orig_error(self, collector_cls):
+        collector = collector_cls()
+        failing_signal_handler = Mock(side_effect=Exception('handler error'))
+        results_collected.connect(failing_signal_handler)
+        try:
+            with pytest.raises(Exception) as excinfo:
+                with collector:
+                    raise Exception('actual code error')
+            assert str(excinfo.value) == 'actual code error'
+            assert failing_signal_handler.called
+        finally:
+            results_collected.disconnect(failing_signal_handler)
+
 
 class TestLimits(object):
     def test_limit_knows_its_collector(self, limit_cls):
@@ -171,44 +219,6 @@ class TestLimitsListeningOnSignals(object):
         with limit:
             pass
         assert len(limit.calls) == 1
-
-    def test_signals_to_all_listeners_reports_first_failure(self, limit_cls):
-        limit = limit_cls()
-
-        class MyException(Exception):
-            pass
-
-        def get_mock_listener():
-            m = Mock()
-            m.return_value = None
-            return m
-
-        first_attached_handler = get_mock_listener()
-        last_attached_handler = get_mock_listener()
-        results_collected.connect(first_attached_handler)
-        with patch.object(limit, 'handle_results') as handle_result_mock:
-            handle_result_mock.side_effect = MyException('foo')
-            with pytest.raises(MyException) as excinfo:
-                with limit:
-                    results_collected.connect(last_attached_handler)
-        assert handle_result_mock.called
-        results_collected.disconnect(first_attached_handler)
-        results_collected.disconnect(last_attached_handler)
-        assert str(excinfo.value).endswith('foo')
-        method_name_in_stacktrace = 'handle_results'
-        assert method_name_in_stacktrace in str(excinfo.value)
-        assert first_attached_handler.called
-        assert last_attached_handler.called
-
-    def test_signal_handler_error_doesnt_hide_inner_ctx_error(self, limit_cls):
-        limit = limit_cls()
-        with patch.object(limit, 'handle_results') as handle_result_mock:
-            handle_result_mock.side_effect = Exception('handler error')
-            with pytest.raises(Exception) as excinfo:
-                with limit:
-                    raise Exception('actual code error')
-        assert str(excinfo.value) == 'actual code error'
-        assert handle_result_mock.called
 
 
 class TestCreatingSettingsBasedLimits(object):
