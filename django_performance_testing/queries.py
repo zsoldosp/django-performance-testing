@@ -47,8 +47,6 @@ class QueryCountResult(object):
 
 class QueryCollector(BaseCollector):
 
-    _ids = set()
-
     def __enter__(self):
         self.queries = []
         self.nr_of_queries_when_entering = len(connection.queries)

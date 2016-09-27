@@ -34,20 +34,6 @@ class BaseCollector(object):
 
     def __init__(self, id_=None):
         self.id_ = id_
-        self.ensure_id_is_unique()
-
-    def ensure_id_is_unique(self):
-        if self.should_have_unique_id():
-            if self.id_ in self._ids:
-                id_ = self.id_
-                self.id_ = None
-                raise TypeError(
-                        'There is already a collector named {!r}'.format(id_))
-            self._ids.add(self.id_)
-
-    def __del__(self):
-        if self.should_have_unique_id():
-            self._ids.remove(self.id_)
 
     def should_have_unique_id(self):
         return self.id_ is not None
@@ -91,9 +77,6 @@ class BaseLimit(object):
         if self.is_anonymous():
             self.collector = self.collector_cls()
         else:
-            if self.collector_id not in self.collector_cls._ids:
-                raise TypeError(
-                    'There is no collector named {!r}'.format(collector_id))
             self.connect_for_results()
             self.collector = None
 

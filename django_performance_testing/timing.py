@@ -4,8 +4,6 @@ from django_performance_testing.core import BaseCollector
 
 class TimeCollector(BaseCollector):
 
-    _ids = set()
-
     def __enter__(self):
         self.start = time()
         return self

@@ -122,6 +122,12 @@ To support that, the limits can be used as context managers, e.g.:
 Release Notes
 =============
 
+* 0.1.2
+
+  * add timing measurement that can be limited
+  * remove uniqueness check for ``collector.id_``, as the problems it caused
+    for testing outweighed its benefit for developer debugging aid
+
 * 0.1.1 - bugfix release
 
   * bugfix: attributes set by on test methods (e.g.: ``@unittest.skip``)
