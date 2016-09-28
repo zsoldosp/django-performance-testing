@@ -3,6 +3,7 @@ try:
 except:
     from mock import patch, Mock
 import pytest
+from django_performance_testing.core import BaseLimit, BaseCollector
 from django_performance_testing.signals import results_collected
 from testapp.test_helpers import \
     override_current_context, capture_result_collected, NameValue
@@ -117,6 +118,12 @@ class TestLimits(object):
         limit = limit_cls()
         assert isinstance(limit.collector, limit_cls.collector_cls)
         assert limit.collector_id is None
+
+    def test_it_is_a_properly_wired_up_base_limit(self, limit_cls):
+        assert issubclass(limit_cls, BaseLimit)
+        assert issubclass(limit_cls.collector_cls, BaseCollector)
+        assert limit_cls.results_collected_handler == \
+            BaseLimit.results_collected_handler
 
 
 class TestLimitsListeningOnSignals(object):

@@ -2,7 +2,7 @@ import pytest
 from django.contrib.auth.models import Group
 from django_performance_testing.queries import \
     QueryCollector, QueryBatchLimit, QueryCountResult
-from django_performance_testing.core import BaseLimit, LimitViolationError
+from django_performance_testing.core import LimitViolationError
 from testapp.test_helpers import override_current_context
 
 
@@ -15,10 +15,7 @@ def wrapped_between_irrelevant_results(name, n):
 
 
 def test_it_is_a_properly_wired_up_base_limit():
-    assert issubclass(QueryBatchLimit, BaseLimit)
     assert QueryBatchLimit.collector_cls == QueryCollector
-    assert QueryBatchLimit.results_collected_handler == \
-        BaseLimit.results_collected_handler
 
 
 @pytest.mark.parametrize('name,limit', [
