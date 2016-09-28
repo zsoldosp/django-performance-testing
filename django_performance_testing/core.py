@@ -95,8 +95,9 @@ class BaseLimit(object):
     def data(self):
         if not self.settings_based:
             return self._data
-        app_settings = getattr(settings, 'PERFORMANCE_LIMITS', {})
-        return app_settings.get(self.collector_id, {})
+        performance_limits = getattr(settings, 'PERFORMANCE_LIMITS', {})
+        settings_for_id = performance_limits.get(self.collector_id, {})
+        return settings_for_id.get(self.settings_key, {})
 
     def __enter__(self):
         if self.is_anonymous():

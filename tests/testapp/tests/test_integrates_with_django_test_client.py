@@ -10,7 +10,12 @@ from django_performance_testing.core import LimitViolationError
 def test_can_specify_limits_through_settings_for_django_test_client(
         db, settings, client, kwparams):
     settings.PERFORMANCE_LIMITS = {
-        'django.test.client.Client': {'total': kwparams['limit']}}
+        'django.test.client.Client': {
+            'queries': {
+                'total': kwparams['limit']
+            }
+        }
+    }
 
     url = reverse(
         'nr_of_queries_view', kwargs={'nr_of_queries': kwparams['queries']})

@@ -106,6 +106,8 @@ def classify_query(sql):
 class QueryBatchLimit(BaseLimit):
     collector_cls = QueryCollector
 
+    settings_key = 'queries'
+
     def handle_results(self, results, context):
         for result in results:
             self.handle_result(result, context)

@@ -124,6 +124,10 @@ class TestLimits(object):
         assert issubclass(limit_cls.collector_cls, BaseCollector)
         assert limit_cls.results_collected_handler == \
             BaseLimit.results_collected_handler
+        assert hasattr(limit_cls, 'handle_results')
+        assert callable(limit_cls.handle_results)
+        assert hasattr(limit_cls, 'settings_key')
+        assert isinstance(limit_cls.settings_key, str)
 
 
 class TestLimitsListeningOnSignals(object):
@@ -247,9 +251,13 @@ class TestCreatingSettingsBasedLimits(object):
         limit = limit_cls(collector_id=id_, settings_based=True)
         settings.PERFORMANCE_LIMITS = {}
         assert limit.data == {}
-        settings.PERFORMANCE_LIMITS = {id_: {'data': 'foo'}}
+        settings.PERFORMANCE_LIMITS = {
+            id_: {limit_cls.settings_key: {'data': 'foo'}}
+        }
         assert limit.data == {'data': 'foo'}
-        settings.PERFORMANCE_LIMITS = {id_: {'whatever': 'bar'}}
+        settings.PERFORMANCE_LIMITS = {
+            id_: {limit_cls.settings_key: {'whatever': 'bar'}}
+        }
         assert limit.data == {'whatever': 'bar'}
 
     def test_when_providing_kwargs_data_that_is_obtained(self, limit_cls):
@@ -271,5 +279,30 @@ class TestCreatingSettingsBasedLimits(object):
         assert limit.data == {}
         limit.handle_results(
             results=[NameValue('total', 1)], context={})  # no error is raised
+
+    def test_correct_settings_data_gets_passed_on(self, limit_cls, settings):
+        id_ = 'foo'
+        random_str = 'bar'
+        settings.PERFORMANCE_LIMITS = {
+            id_: {
+                limit_cls.settings_key + random_str: {
+                    'bad': 'wrong second level id in P_L',
+                },
+                limit_cls.settings_key: {
+                    'good': 'config'
+                }
+            },
+            random_str: {
+                limit_cls.settings_key + random_str: {
+                    'bad': 'under wrong id in P_L',
+                },
+                limit_cls.settings_key: {
+                    'bad': 'under wrong id in P_L'
+                },
+            }
+        }
+        limit = limit_cls(collector_id=id_, settings_based=True)
+        assert limit.data == {'good': 'config'}
+
 
 # TODO: what to do w/ reports, where one'd listen on more than one collector?

@@ -74,21 +74,32 @@ Following are the keys that are currently supported for
 * ``test method`` - the actual various ``unittest`` test methods that
   you write for your app
 
+And the following types of limits are supported:
+
+  * ``queries`` - contains the values for query count limits, such as
+    ``read``, ``write``, ``other``, ``total``
+
 Sample Settings
 ---------------
 
 ::
 
     PERFORMANCE_LIMITS = {
-        'test method': {'total': 50},  # want to keep the tests focused
+        'test method': {
+            'queries': {'total': 50}  # want to keep the tests focused
+        },
         'django.test.client.Client': {
-            'read': 30,
-            'write': 8,  # do not create complex object structures in the web
-                         # process
+            'queries': {
+                'read': 30,
+                'write': 8,  # do not create complex object structures in the web
+                             # process
+            },
         },
         'Template.render': {
-            'write': 0,  # rendering a template should never write to the database!
-            'read': 0
+            'queries': {
+                'write': 0,  # rendering a template should never write to the database!
+                'read': 0
+            }
         }
     }
 
@@ -122,11 +133,12 @@ To support that, the limits can be used as context managers, e.g.:
 Release Notes
 =============
 
-* 0.1.2
+* 0.2.0
 
   * add timing measurement that can be limited
   * remove uniqueness check for ``collector.id_``, as the problems it caused
     for testing outweighed its benefit for developer debugging aid
+  * backwards incompatible: change how settings based limits are specified
 
 * 0.1.1 - bugfix release
 
