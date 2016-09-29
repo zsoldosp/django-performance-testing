@@ -57,3 +57,4 @@ def test_can_specify_limits_through_settings_for_django_test_client(
         assert excinfo.value.context == {
             'Client.request': ['{method} {url}'.format(
                 url=dqv.url, **kwparams)]}
+        assert excinfo.value.items_name == 'queries'
