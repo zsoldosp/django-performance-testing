@@ -42,4 +42,4 @@ INSTALLED_APPS = (
 
 STATIC_URL = '/static/'
 
-ROOT_URLCONF = 'testapp.urls'
+ROOT_URLCONF = None
