@@ -18,18 +18,21 @@ class NameValue(object):
         self.value = value
 
     def __eq__(self, other):
-        if any(isinstance(other, tp) for tp in [NameValue, tuple]):
-            return tuple(self) == tuple(other)
+        if isinstance(other, NameValue):
+            return self.name == other.name and self.value == other.value
         if isinstance(other, int):
             return self.value == other
         raise NotImplementedError()
 
     def __lt__(self, other):
-        if any(isinstance(other, tp) for tp in [NameValue, tuple]):
-            return tuple(self) < tuple(other)
+        if isinstance(other, NameValue):
+            return self.value < other.value
         if isinstance(other, int):
             return self.value < other
         raise NotImplementedError()
+
+    def __str__(self):
+        return str(self.value)
 
 
 def run_testcase_with_django_runner(
