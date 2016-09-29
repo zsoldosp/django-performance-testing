@@ -1,8 +1,9 @@
 import pytest
 from django.utils import six
-from django_performance_testing.signals import results_collected
+from django_performance_testing.core import NameValueResult
 from django_performance_testing.reports import WorstReport, Result
-from testapp.test_helpers import WithId, NameValue
+from django_performance_testing.signals import results_collected
+from testapp.test_helpers import WithId
 
 
 def test_has_worst_value_and_its_context():
@@ -81,10 +82,11 @@ def test_report_printed_includes_all_needed_data():
     report = WorstReport()
     report.handle_results_collected(
         signal=None, sender=WithId('id 2 - querycount'),
-        results=[NameValue(name='nine', value=9)], context={'foo': 'bar'})
+        results=[
+            NameValueResult(name='nine', value=9)], context={'foo': 'bar'})
     report.handle_results_collected(
         signal=None, sender=WithId('id 1 - querycount'),
-        results=[NameValue(name='two', value=2)],
+        results=[NameValueResult(name='two', value=2)],
         context={'test': 'some.app.tests.TestCase.test_foo'})
     stream = six.StringIO()
     report.render(stream)
@@ -118,7 +120,8 @@ def test_there_is_one_channel_per_each_name_received():
     report = WorstReport()
     report.handle_results_collected(
         signal=None, sender=WithId('id'),
-        results=[NameValue('one', 1), NameValue('two', 2)], context={})
+        results=[
+            NameValueResult('one', 1), NameValueResult('two', 2)], context={})
     assert list(report.data.keys()) == ['id']
     assert sorted(report.data['id'].keys()) == ['one', 'two']
     assert report.data['id']['one'].value == 1
@@ -131,11 +134,11 @@ def test_has_separate_context_for_each_channels_worst():
     report = WorstReport()
     report.handle_results_collected(
         signal=None, sender=WithId('id'),
-        results=[NameValue('one', 1), NameValue('two', 2)],
+        results=[NameValueResult('one', 1), NameValueResult('two', 2)],
         context={'event': 'first'})
     report.handle_results_collected(
         signal=None, sender=WithId('id'),
-        results=[NameValue('one', 3), NameValue('two', 1)],
+        results=[NameValueResult('one', 3), NameValueResult('two', 1)],
         context={'event': 'second'})
     assert list(report.data.keys()) == ['id']
     assert sorted(report.data['id'].keys()) == ['one', 'two']

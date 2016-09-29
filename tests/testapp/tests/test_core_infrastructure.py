@@ -1,10 +1,10 @@
 import pytest
 from django_performance_testing.core import \
-    BaseLimit, BaseCollector, LimitViolationError
+    BaseLimit, BaseCollector, LimitViolationError, NameValueResult
 from django_performance_testing.signals import results_collected
 from testapp.sixmock import patch, Mock
 from testapp.test_helpers import \
-    override_current_context, capture_result_collected, NameValue
+    override_current_context, capture_result_collected
 
 
 class TestCollectors(object):
@@ -144,7 +144,7 @@ class TestLimits(object):
         assert limit > value, 'test pre-req'
         limit_obj = limit_cls(**{name: limit})
         limit_obj.handle_results(
-            results=[NameValue(name, value)], context=None)
+            results=[NameValueResult(name, value)], context=None)
         assert True  # no exception raised
 
     @pytest.mark.parametrize('number', [9, 7])
@@ -153,7 +153,7 @@ class TestLimits(object):
         limit_cls, name = limit_cls_and_name
         limit_obj = limit_cls(**{name: number})
         limit_obj.handle_results(
-            results=[NameValue(name, number)], context=None)
+            results=[NameValueResult(name, number)], context=None)
         assert True  # no exception raised
 
     @pytest.mark.parametrize('limit,value', [
@@ -164,7 +164,7 @@ class TestLimits(object):
         limit_cls, name = limit_cls_and_name
         assert limit < value, 'test pre-req'
         limit_obj = limit_cls(**{name: limit})
-        result = NameValue(name, value)
+        result = NameValueResult(name, value)
         with pytest.raises(LimitViolationError) as excinfo:
             limit_obj.handle_results(
                 results=[result], context=None)
@@ -322,7 +322,8 @@ class TestCreatingSettingsBasedLimits(object):
         settings.PERFORMANCE_LIMITS = {}
         assert limit.data == {}
         limit.handle_results(
-            results=[NameValue('total', 1)], context={})  # no error is raised
+            results=[NameValueResult('total', 1)], context={})
+        assert True  # no error is raised
 
     def test_correct_settings_data_gets_passed_on(self, limit_cls, settings):
         id_ = 'foo'
