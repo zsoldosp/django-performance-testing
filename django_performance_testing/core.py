@@ -126,3 +126,20 @@ class BaseLimit(object):
             if self.collector != sender:
                 return
         self.handle_results(results=results, context=context)
+
+    def handle_results(self, results, context):
+        for result in results:
+            self.handle_result(result, context)
+
+    def handle_result(self, result, context):
+        limit = self.data.get(result.name)
+        if limit is None:
+            return
+        if result <= limit:
+            return
+
+        name = result.name
+        if not self.is_anonymous():
+            name += ' (for {})'.format(self.collector_id)
+        raise LimitViolationError(
+            name=name, limit=limit, actual=result, context=context)

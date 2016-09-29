@@ -2,8 +2,7 @@ import functools
 from django.db import connection
 from django.utils import six
 from django_performance_testing.signals import before_clearing_queries_log
-from django_performance_testing.core import \
-    BaseLimit, LimitViolationError, BaseCollector
+from django_performance_testing.core import BaseLimit, BaseCollector
 from django_performance_testing.utils import DelegatingProxy
 
 
@@ -107,20 +106,3 @@ class QueryBatchLimit(BaseLimit):
     collector_cls = QueryCollector
 
     settings_key = 'queries'
-
-    def handle_results(self, results, context):
-        for result in results:
-            self.handle_result(result, context)
-
-    def handle_result(self, result, context):
-        limit = self.data.get(result.name)
-        if limit is None:
-            return
-        if result <= limit:
-            return
-
-        name = result.name
-        if not self.is_anonymous():
-            name += ' (for {})'.format(self.collector_id)
-        raise LimitViolationError(
-            name=name, limit=limit, actual=result, context=context)

@@ -16,6 +16,3 @@ class TimeLimit(BaseLimit):
     collector_cls = TimeCollector
 
     settings_key = 'time'
-
-    def handle_results(self, results, context):
-        pass

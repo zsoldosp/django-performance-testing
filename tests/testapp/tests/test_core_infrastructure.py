@@ -3,7 +3,8 @@ try:
 except:
     from mock import patch, Mock
 import pytest
-from django_performance_testing.core import BaseLimit, BaseCollector
+from django_performance_testing.core import \
+    BaseLimit, BaseCollector, LimitViolationError
 from django_performance_testing.signals import results_collected
 from testapp.test_helpers import \
     override_current_context, capture_result_collected, NameValue
@@ -128,6 +129,42 @@ class TestLimits(object):
         assert callable(limit_cls.handle_results)
         assert hasattr(limit_cls, 'settings_key')
         assert isinstance(limit_cls.settings_key, str)
+
+    @pytest.mark.parametrize('limit,value', [
+            (3, 2), (1, 0)
+        ])
+    def test_when_below_the_limit_there_is_no_error(
+            self, limit_cls_and_name, limit, value):
+        limit_cls, name = limit_cls_and_name
+        assert limit > value, 'test pre-req'
+        limit_obj = limit_cls(**{name: limit})
+        limit_obj.handle_results(
+            results=[NameValue(name, value)], context=None)
+        assert True  # no exception raised
+
+    @pytest.mark.parametrize('number', [9, 7])
+    def test_when_exactly_limit_there_is_no_error(
+            self, limit_cls_and_name, number):
+        limit_cls, name = limit_cls_and_name
+        limit_obj = limit_cls(**{name: number})
+        limit_obj.handle_results(
+            results=[NameValue(name, number)], context=None)
+        assert True  # no exception raised
+
+    @pytest.mark.parametrize('limit,value', [
+            (1, 9), (9, 10)
+        ])
+    def test_when_above_the_limit_there_is_an_error(
+            self, limit_cls_and_name, limit, value):
+        limit_cls, name = limit_cls_and_name
+        assert limit < value, 'test pre-req'
+        limit_obj = limit_cls(**{name: limit})
+        with pytest.raises(LimitViolationError) as excinfo:
+            limit_obj.handle_results(
+                results=[NameValue(name, value)], context=None)
+        assert excinfo.value.limit == limit
+        assert excinfo.value.actual == value
+        assert not excinfo.value.context
 
 
 class TestLimitsListeningOnSignals(object):
