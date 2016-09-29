@@ -1,8 +1,8 @@
-import functools
 from django.db import connection
 from django.utils import six
 from django_performance_testing.signals import before_clearing_queries_log
-from django_performance_testing.core import BaseLimit, BaseCollector
+from django_performance_testing.core import \
+    BaseLimit, BaseCollector, NameValueResult
 from django_performance_testing.utils import DelegatingProxy
 
 
@@ -16,32 +16,16 @@ def setup_sending_before_clearing_queries_log_signal():
         connection.queries_log)
 
 
-@functools.total_ordering
-class QueryCountResult(object):
+class QueryCountResult(NameValueResult):
 
-    def __init__(self, queries, name=None):
+    def __init__(self, queries, name):
         self.queries = queries
-        self.name = name
+        super(QueryCountResult, self).__init__(
+            name=name, value=self.number_of_queries)
 
     @property
-    def nr_of_queries(self):
+    def number_of_queries(self):
         return len(self.queries)
-
-    def _to_cmp_val(self, other):
-        if type(other) in six.integer_types:
-            return other
-        if type(other) == QueryCountResult:
-            return other.nr_of_queries
-        raise NotImplementedError()
-
-    def __lt__(self, other):
-        return self.nr_of_queries < self._to_cmp_val(other)
-
-    def __eq__(self, other):
-        return self.nr_of_queries == self._to_cmp_val(other)
-
-    def __str__(self):
-        return str(self.nr_of_queries)
 
 
 class QueryCollector(BaseCollector):

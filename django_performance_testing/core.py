@@ -1,9 +1,34 @@
 import copy
 from django.conf import settings
+from django.utils import six
 from django_performance_testing import context
 from django_performance_testing.signals import results_collected
+import functools
 import pprint
 import traceback
+
+
+@functools.total_ordering
+class NameValueResult(object):
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+    def _to_cmp_val(self, other):
+        if type(other) in six.integer_types:
+            return other
+        if type(other) == type(self):
+            return other.value
+        raise NotImplementedError()
+
+    def __lt__(self, other):
+        return self.value < self._to_cmp_val(other)
+
+    def __eq__(self, other):
+        return self.value == self._to_cmp_val(other)
+
+    def __str__(self):
+        return str(self.value)
 
 
 class LimitViolationError(RuntimeError):
