@@ -8,25 +8,77 @@ import traceback
 
 class LimitViolationError(RuntimeError):
 
-    def __init__(self, name, limit, actual, context, tb=None):
-        self.name = name
-        self.limit = limit
-        self.actual = actual
+    def __init__(self, limit_obj, result, context, tb=None):
+        self.limit_obj = limit_obj
+        self.result = result
         self.context = context
+        self.tb = tb
+        super(LimitViolationError, self).__init__(self.error_msg)
 
-        context_msg = ''
-        if context:
-            context_msg = ' {}'.format(
-                pprint.pformat(context))
-        error_msg = 'Too many ({}) {} queries (limit: {}){}'.format(
-            actual, name, limit, context_msg)  # TODO: add limit type here!
+    @property
+    def error_msg(self):
+        base = self.base_error_msg
+        ctx = self.context_repr
+        tb = self.tb_msg
+        if ctx:
+            ctx = ' {}'.format(ctx)
         if tb:
-            error_msg += '\n{}'.format(tb)
-        super(LimitViolationError, self).__init__(error_msg)
+            tb = '\n{}'.format(tb)
+        return ''.join([base, ctx, tb])
+
+    @property
+    def tb_msg(self):
+        if self.tb:
+            return self.tb
+        return ''
+
+    @property
+    def context_repr(self):
+        if self.context:
+            return pprint.pformat(self.context)
+        return ''
+
+    @property
+    def base_error_msg(self):
+        return 'Too {} ({}) {} {}{} (limit: {})'.format(
+            self.quantifier,
+            self.actual,
+            self.name,
+            self.items_name,
+            self.collector_text,
+            self.limit
+        )
+
+    @property
+    def quantifier(self):
+        return self.limit_obj.quantifier
+
+    @property
+    def items_name(self):
+        return self.limit_obj.items_name
+
+    @property
+    def name(self):
+        return self.result.name
+
+    @property
+    def collector_text(self):
+        if self.limit_obj.is_anonymous():
+            return ''
+        return ' (for {})'.format(self.limit_obj.collector_id)
+
+    @property
+    def actual(self):
+        return str(self.result)
+
+    @property
+    def limit(self):
+        return self.limit_obj.limit_for(self.result)
 
     def clone_with_more_info(self, orig_tb):
+        # TODO: move test for it to exception
         return LimitViolationError(
-            name=self.name, limit=self.limit, actual=self.actual,
+            limit_obj=self.limit_obj, result=self.result,
             context=self.context, tb=orig_tb)
 
 
@@ -132,7 +184,7 @@ class BaseLimit(object):
             self.handle_result(result, context)
 
     def handle_result(self, result, context):
-        limit = self.data.get(result.name)
+        limit = self.limit_for(result)
         if limit is None:
             return
         if result <= limit:
@@ -142,4 +194,7 @@ class BaseLimit(object):
         if not self.is_anonymous():
             name += ' (for {})'.format(self.collector_id)
         raise LimitViolationError(
-            name=name, limit=limit, actual=result, context=context)
+            limit_obj=self, result=result, context=context)
+
+    def limit_for(self, result):
+        return self.data.get(result.name)

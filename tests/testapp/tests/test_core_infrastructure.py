@@ -164,11 +164,13 @@ class TestLimits(object):
         limit_cls, name = limit_cls_and_name
         assert limit < value, 'test pre-req'
         limit_obj = limit_cls(**{name: limit})
+        result = NameValue(name, value)
         with pytest.raises(LimitViolationError) as excinfo:
             limit_obj.handle_results(
-                results=[NameValue(name, value)], context=None)
-        assert excinfo.value.limit == limit
-        assert excinfo.value.actual == value
+                results=[result], context=None)
+        assert excinfo.value.limit_obj == limit_obj
+        assert excinfo.value.result == result
+        assert excinfo.value.actual == str(value)
         assert not excinfo.value.context
 
 

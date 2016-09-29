@@ -18,13 +18,13 @@ def test_it_has_the_correct_attributes_for_limitviolationerror():
 def test_integration_test_with_db(db):
     with pytest.raises(LimitViolationError) as excinfo:
         with override_current_context() as ctx:
-            with QueryBatchLimit(total=2):
+            with QueryBatchLimit(total=2) as limit:
                 ctx.enter(key='some', value='context')
                 list(Group.objects.all())
                 Group.objects.update(name='bar')
                 Group.objects.create(name='group')
     assert excinfo.value.context == {'some': ['context']}
-    assert excinfo.value.actual == 3
+    assert excinfo.value.limit_obj == limit
     assert excinfo.value.limit == 2
     assert excinfo.value.name == 'total'
 
@@ -37,7 +37,7 @@ def test_type_limit_checks_are_performed_in_alphabetic_order_of_type_name():
             QueryCountResult(name='a', queries=range(2)),
             QueryCountResult(name='c', queries=range(2)),
         ], context=None)
-    assert excinfo.value.actual == 2
+    assert excinfo.value.actual == '2'
     assert excinfo.value.limit == 1
     assert excinfo.value.name == 'a'
 
@@ -47,18 +47,9 @@ def test_type_limit_checks_are_performed_in_alphabetic_order_of_type_name():
             QueryCountResult(name='c', queries=range(2)),
             QueryCountResult(name='b', queries=range(5)),
         ], context=None)
-    assert excinfo.value.actual == 5
+    assert excinfo.value.actual == '5'
     assert excinfo.value.limit == 2
     assert excinfo.value.name == 'b'
-
-
-def test_limit_exceeded_failure_message_includes_collector_name_if_exists(db):
-    with pytest.raises(LimitViolationError) as excinfo:
-        collector = QueryBatchLimit.collector_cls(id_='collector_id_included')
-        with QueryBatchLimit(collector_id='collector_id_included', read=0):
-            with collector:
-                list(Group.objects.all())
-    assert excinfo.value.name == 'read (for collector_id_included)'
 
 
 def test_can_specify_typed_limits(db):
@@ -73,7 +64,7 @@ def test_can_specify_typed_limits(db):
         with QueryBatchLimit(read=0):
             list(Group.objects.all())
     assert excinfo.value.context == {}
-    assert excinfo.value.actual == 1
+    assert excinfo.value.actual == '1'
     assert excinfo.value.limit == 0
     assert excinfo.value.name == 'read'
 
@@ -82,6 +73,6 @@ def test_can_specify_typed_limits(db):
             Group.objects.update(name='baz')
             Group.objects.update(name='name')
     assert excinfo.value.context == {}
-    assert excinfo.value.actual == 2
+    assert excinfo.value.actual == '2'
     assert excinfo.value.limit == 1
     assert excinfo.value.name == 'write'
