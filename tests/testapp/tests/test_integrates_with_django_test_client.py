@@ -8,17 +8,9 @@ from django_performance_testing.core import LimitViolationError
 urlpatterns = []
 
 
-class DbQueriesView(object):
+class RegisterSelfAsViewContextManager(object):
 
     reverse_name = 'test_view'
-
-    def __init__(self, value):
-        self.value = value
-
-    def __call__(self, request):
-        for i in range(self.value):
-            list(Group.objects.all())
-        return HttpResponse()
 
     def __enter__(self):
         urlpatterns.append(url(self.reverse_name, self, {}, self.reverse_name))
@@ -35,6 +27,17 @@ class DbQueriesView(object):
         response = method(self.url)
         print(response.status_code)  # helps when it fails
         return response
+
+
+class DbQueriesView(RegisterSelfAsViewContextManager):
+
+    def __init__(self, value):
+        self.value = value
+
+    def __call__(self, request):
+        for i in range(self.value):
+            list(Group.objects.all())
+        return HttpResponse()
 
 
 @pytest.mark.parametrize('method,limit,value', [
