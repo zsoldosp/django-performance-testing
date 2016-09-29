@@ -1,9 +1,11 @@
-import pytest
+from datetime import timedelta
 from django.conf.urls import url
 from django.contrib.auth.models import Group
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django_performance_testing.core import LimitViolationError
+from freezegun import freeze_time
+import pytest
 
 urlpatterns = []
 
@@ -44,7 +46,7 @@ class DbQueriesView(RegisterSelfAsViewContextManager):
     ['GET', 4, 5], ['POST', 1, 2]
 ], ids=['GET', 'POST'])
 @pytest.mark.urls(__name__)
-def test_can_specify_limits_through_settings_for_django_test_client(
+def test_can_specify_query_limits_through_settings_for_django_test_client(
         db, settings, client, method, limit, value):
     settings.PERFORMANCE_LIMITS = {
         'django.test.client.Client': {
@@ -60,3 +62,45 @@ def test_can_specify_limits_through_settings_for_django_test_client(
             'Client.request': ['{method} {url}'.format(
                 url=dqv.url, method=method)]}
         assert excinfo.value.items_name == 'queries'
+
+
+class SlowRenderingView(RegisterSelfAsViewContextManager):
+
+    def __init__(self, value):
+        self.value = value
+
+    def __enter__(self):
+        self.frozen_time_ctx = freeze_time('2016-09-29 18:18:01')
+        self.frozen_time = self.frozen_time_ctx.__enter__()
+        return super(SlowRenderingView, self).__enter__()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.frozen_time_ctx.__exit__(exc_type, exc_val, exc_tb)
+        return super(SlowRenderingView, self).__exit__(
+            exc_type, exc_val, exc_tb)
+
+    def __call__(self, request):
+        self.frozen_time.tick(timedelta(seconds=self.value))
+        return HttpResponse()
+
+
+@pytest.mark.parametrize('method,limit,value', [
+    ['GET', 4, 5], ['POST', 1, 2]
+], ids=['GET', 'POST'])
+@pytest.mark.urls(__name__)
+def test_can_specify_time_limits_through_settings_for_django_test_client(
+        db, settings, client, method, limit, value):
+    settings.PERFORMANCE_LIMITS = {
+        'django.test.client.Client': {
+            'time': {
+                'total': limit
+            }
+        }
+    }
+    with SlowRenderingView(value=value) as srv:
+        with pytest.raises(LimitViolationError) as excinfo:
+            srv.request(getattr(client, method.lower()))
+        assert excinfo.value.context == {
+            'Client.request': ['{method} {url}'.format(
+                url=srv.url, method=method)]}
+        assert excinfo.value.items_name == 'elapsed seconds'

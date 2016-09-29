@@ -2,8 +2,8 @@ from datetime import timedelta
 from django.contrib.auth.models import Group
 from django.template import loader
 from django_performance_testing.core import LimitViolationError
-import pytest
 from freezegun import freeze_time
+import pytest
 
 
 def test_has_support_for_number_of_queries_in_templates(db, settings):
