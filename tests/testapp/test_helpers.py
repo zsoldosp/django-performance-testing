@@ -4,11 +4,32 @@ from django.test.utils import get_runner
 from django.utils import six
 from django_performance_testing import context
 from django_performance_testing.signals import results_collected
+import functools
 
 
 WithId = namedtuple('WithId', ('id_',))
 
-NameValue = namedtuple('NameValue', ('name', 'value'))
+
+@functools.total_ordering
+class NameValue(object):
+
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+    def __eq__(self, other):
+        if any(isinstance(other, tp) for tp in [NameValue, tuple]):
+            return tuple(self) == tuple(other)
+        if isinstance(other, int):
+            return self.value == other
+        raise NotImplementedError()
+
+    def __lt__(self, other):
+        if any(isinstance(other, tp) for tp in [NameValue, tuple]):
+            return tuple(self) < tuple(other)
+        if isinstance(other, int):
+            return self.value < other
+        raise NotImplementedError()
 
 
 def run_testcase_with_django_runner(
