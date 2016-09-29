@@ -5,7 +5,6 @@ import pytest
 
 
 def test_has_support_for_number_of_queries_in_templates(db, settings):
-    print(settings.TEMPLATES)
     settings.PERFORMANCE_LIMITS = {
         'Template.render': {
             'queries': {
