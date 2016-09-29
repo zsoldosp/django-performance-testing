@@ -16,3 +16,6 @@ class TimeLimit(BaseLimit):
     collector_cls = TimeCollector
 
     settings_key = 'time'
+
+    quantifier = 'many'
+    items_name = 'elapsed seconds'

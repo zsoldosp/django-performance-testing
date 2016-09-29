@@ -106,3 +106,6 @@ class QueryBatchLimit(BaseLimit):
     collector_cls = QueryCollector
 
     settings_key = 'queries'
+
+    quantifier = 'many'
+    items_name = 'queries'

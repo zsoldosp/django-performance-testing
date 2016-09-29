@@ -127,6 +127,14 @@ class TestLimits(object):
         assert hasattr(limit_cls, 'settings_key')
         assert isinstance(limit_cls.settings_key, str)
 
+    def test_has_required_attrs_for_limit_violation_error(self, limit_cls):
+        def assert_has_str_attr(name):
+            assert hasattr(limit_cls, name)
+            assert isinstance(getattr(limit_cls, name), str)
+
+        assert_has_str_attr('quantifier')
+        assert_has_str_attr('items_name')
+
     @pytest.mark.parametrize('limit,value', [
             (3, 2), (1, 0)
         ])

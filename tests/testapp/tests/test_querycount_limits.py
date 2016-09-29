@@ -10,6 +10,11 @@ def test_it_has_the_correct_collector():
     assert QueryBatchLimit.collector_cls == QueryCollector
 
 
+def test_it_has_the_correct_attributes_for_limitviolationerror():
+    assert QueryBatchLimit.quantifier == 'many'
+    assert QueryBatchLimit.items_name == 'queries'
+
+
 def test_integration_test_with_db(db):
     with pytest.raises(LimitViolationError) as excinfo:
         with override_current_context() as ctx:
