@@ -1,6 +1,5 @@
 import copy
 from django.conf import settings
-from django.utils import six
 from django_performance_testing import context
 from django_performance_testing.signals import results_collected
 import functools
@@ -15,11 +14,15 @@ class NameValueResult(object):
         self.value = value
 
     def _to_cmp_val(self, other):
-        if type(other) in six.integer_types:
-            return other
         if type(other) == type(self):
             return other.value
-        raise NotImplementedError()
+        try:
+            # other is numeric
+            # need it e.g.: to support _pytest.python.ApproxNonIterable
+            x = bool(self.value == other)  # noqa: F841
+            return other
+        except TypeError:
+            raise NotImplementedError()
 
     def __lt__(self, other):
         return self.value < self._to_cmp_val(other)

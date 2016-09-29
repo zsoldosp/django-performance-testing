@@ -1,5 +1,6 @@
 from time import time
-from django_performance_testing.core import BaseCollector, BaseLimit
+from django_performance_testing.core import \
+    BaseCollector, BaseLimit, NameValueResult
 
 
 class TimeCollector(BaseCollector):
@@ -9,7 +10,7 @@ class TimeCollector(BaseCollector):
         return self
 
     def get_results_to_send(self):
-        return [time() - self.start]
+        return [NameValueResult(name='total', value=time() - self.start)]
 
 
 class TimeLimit(BaseLimit):
