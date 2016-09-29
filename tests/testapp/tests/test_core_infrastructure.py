@@ -1,11 +1,8 @@
-try:
-    from unittest.mock import patch, Mock
-except:
-    from mock import patch, Mock
 import pytest
 from django_performance_testing.core import \
     BaseLimit, BaseCollector, LimitViolationError
 from django_performance_testing.signals import results_collected
+from testapp.sixmock import patch, Mock
 from testapp.test_helpers import \
     override_current_context, capture_result_collected, NameValue
 
