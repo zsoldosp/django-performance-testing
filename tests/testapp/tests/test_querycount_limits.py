@@ -14,7 +14,7 @@ def wrapped_between_irrelevant_results(name, n):
     ]
 
 
-def test_it_is_a_properly_wired_up_base_limit():
+def test_it_has_the_correct_collector():
     assert QueryBatchLimit.collector_cls == QueryCollector
 
 
