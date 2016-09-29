@@ -37,24 +37,23 @@ class DbQueriesView(object):
         return response
 
 
-@pytest.mark.parametrize('kwparams', [
-    {'method': 'GET', 'limit': 4, 'queries': 5},
-    {'method': 'POST', 'limit': 1, 'queries': 2},
+@pytest.mark.parametrize('method,limit,value', [
+    ['GET', 4, 5], ['POST', 1, 2]
 ], ids=['GET', 'POST'])
 @pytest.mark.urls(__name__)
 def test_can_specify_limits_through_settings_for_django_test_client(
-        db, settings, client, kwparams):
+        db, settings, client, method, limit, value):
     settings.PERFORMANCE_LIMITS = {
         'django.test.client.Client': {
             'queries': {
-                'total': kwparams['limit']
+                'total': limit
             }
         }
     }
-    with DbQueriesView(value=kwparams['queries']) as dqv:
+    with DbQueriesView(value=value) as dqv:
         with pytest.raises(LimitViolationError) as excinfo:
-            dqv.request(getattr(client, kwparams['method'].lower()))
+            dqv.request(getattr(client, method.lower()))
         assert excinfo.value.context == {
             'Client.request': ['{method} {url}'.format(
-                url=dqv.url, **kwparams)]}
+                url=dqv.url, method=method)]}
         assert excinfo.value.items_name == 'queries'
