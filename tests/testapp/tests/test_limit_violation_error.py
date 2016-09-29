@@ -154,3 +154,15 @@ def test_actual_exception_message_is_derived_from_error_msg_property(val):
     lve = FakeLimitViolationError(
         limit_obj=MagicMock(), result=MagicMock(), context=None)
     assert str(lve) == val
+
+
+@pytest.mark.parametrize('val', ['foo', 'bar', 'baz'])
+def test_clone_with_more_info_preserves_orig_arguments(val):
+    context = {}
+    lve = LimitViolationError(
+        limit_obj=MagicMock(), result=MagicMock(), context=context)
+    cloned_lve = lve.clone_with_more_info(orig_tb='foo')
+    assert id(cloned_lve.context) == id(lve.context)
+    assert id(cloned_lve.limit_obj) == id(lve.limit_obj)
+    assert id(cloned_lve.result) == id(lve.result)
+    assert cloned_lve.tb == 'foo'

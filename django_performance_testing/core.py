@@ -76,7 +76,6 @@ class LimitViolationError(RuntimeError):
         return self.limit_obj.limit_for(self.result)
 
     def clone_with_more_info(self, orig_tb):
-        # TODO: move test for it to exception
         return LimitViolationError(
             limit_obj=self.limit_obj, result=self.result,
             context=self.context, tb=orig_tb)
