@@ -18,8 +18,7 @@ def test_has_support_for_number_of_queries_in_templates(db, settings):
     with pytest.raises(LimitViolationError) as excinfo:
         template.render(context={'groups': Group.objects.all()})
 
-    expected_error_message = '{\'template\': [\'all-group-names.markdown\']}'
-    assert expected_error_message in str(excinfo.value)
+    assert excinfo.value.context == {'template': ['all-group-names.markdown']}
 
 
 def test_has_support_for_elapsed_time_in_template_render(settings):
@@ -41,5 +40,4 @@ def test_has_support_for_elapsed_time_in_template_render(settings):
         with pytest.raises(LimitViolationError) as excinfo:
             template.render(context={'groups': SlowIterable()})
 
-    expected_error_message = '{\'template\': [\'all-group-names.markdown\']}'
-    assert expected_error_message in str(excinfo.value)
+    assert excinfo.value.context == {'template': ['all-group-names.markdown']}

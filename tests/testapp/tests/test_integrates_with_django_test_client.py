@@ -21,6 +21,5 @@ def test_can_specify_limits_through_settings_for_django_test_client(
         'nr_of_queries_view', kwargs={'nr_of_queries': kwparams['queries']})
     with pytest.raises(LimitViolationError) as excinfo:
         getattr(client, kwparams['method'].lower())(url)
-    expected_detail = '\'Client.request\': [\'{method} {url}\']}}'.format(
-            url=url, **kwparams)
-    assert expected_detail in str(excinfo.value)
+    assert excinfo.value.context == {
+        'Client.request': ['{method} {url}'.format(url=url, **kwparams)]}
