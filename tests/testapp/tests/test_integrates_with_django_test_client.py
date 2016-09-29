@@ -8,6 +8,34 @@ from django_performance_testing.core import LimitViolationError
 urlpatterns = []
 
 
+class DbQueriesView(object):
+
+    reverse_name = 'test_view'
+
+    def __init__(self, value):
+        self.value = value
+
+    def __call__(self, request):
+        for i in range(self.value):
+            list(Group.objects.all())
+        return HttpResponse()
+
+    def __enter__(self):
+        urlpatterns.append(url(self.reverse_name, self, {}, self.reverse_name))
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        urlpatterns.pop()
+
+    @property
+    def url(self):
+        return reverse(self.reverse_name)
+
+    def request(self, method):
+        response = method(self.url)
+        print(response.status_code)  # helps when it fails
+        return response
+
 
 @pytest.mark.parametrize('kwparams', [
     {'method': 'GET', 'limit': 4, 'queries': 5},
@@ -23,16 +51,9 @@ def test_can_specify_limits_through_settings_for_django_test_client(
             }
         }
     }
-
-    def run_n_queries_view(request):
-        for i in range(kwparams['queries']):
-            list(Group.objects.all())
-        return HttpResponse()
-    # client.get('test-view') would fail 'coz it's /test-view
-    urlpatterns.append(url('test-view', run_n_queries_view, {}, 'test_view'))
-    path = reverse('test_view')
-    with pytest.raises(LimitViolationError) as excinfo:
-        response = getattr(client, kwparams['method'].lower())(path)
-        print(response.status_code)  # helps when it fails
-    assert excinfo.value.context == {
-        'Client.request': ['{method} {url}'.format(url=path, **kwparams)]}
+    with DbQueriesView(value=kwparams['queries']) as dqv:
+        with pytest.raises(LimitViolationError) as excinfo:
+            dqv.request(getattr(client, kwparams['method'].lower()))
+        assert excinfo.value.context == {
+            'Client.request': ['{method} {url}'.format(
+                url=dqv.url, **kwparams)]}
