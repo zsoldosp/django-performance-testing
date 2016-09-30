@@ -1,3 +1,4 @@
+from django.contrib.auth.models import Group
 from django_performance_testing.reports import WorstReport
 from django_performance_testing.signals import results_collected
 from testapp.test_helpers import WithId, run_testcase_with_django_runner
@@ -5,21 +6,24 @@ import pytest
 import unittest
 
 
-@pytest.fixture(scope='module')
-def sample_test_results():
+@pytest.fixture
+def sample_test_results(db):
     class SampleTestCase(unittest.TestCase):
 
-        def test_one(self):
+        def test_whatever_one(self):
             results_collected.send(
                 sender=WithId('whatever'), results=[1],
                 context={'test': 'one'})
 
-        def test_two(self):
+        def test_whatever_two(self):
             results_collected.send(
                 sender=WithId('whatever'), results=[2],
                 context={'test': 'two'})
 
-    return run_testcase_with_django_runner(SampleTestCase, nr_of_tests=2)
+        def test_slow_query(self):
+            list(Group.objects.all())
+
+    return run_testcase_with_django_runner(SampleTestCase, nr_of_tests=3)
 
 
 def test_runner_has_worst_report_attribute(sample_test_results):
@@ -49,7 +53,7 @@ def test_has_worst_test_method_in_the_report(sample_test_results):
     worst_test = worst_total_tm.context['test name']
     assert len(worst_test) == 1
     assert worst_test[0].startswith(
-        'test_one ({}'.format(__name__))
+        'test_slow_query ({}'.format(__name__))
     assert worst_test[0].endswith('.SampleTestCase)')
 
 
