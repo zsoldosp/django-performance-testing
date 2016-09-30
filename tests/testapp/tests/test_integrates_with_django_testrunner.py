@@ -3,10 +3,9 @@ from django.test.utils import get_runner
 from django.utils import six
 from django_performance_testing import test_runner as djpt_test_runner_module
 from django_performance_testing.reports import WorstReport
-from django_performance_testing.signals import results_collected
 import pytest
 from testapp.test_helpers import \
-    WithId, run_testcase_with_django_runner, override_current_context
+    run_testcase_with_django_runner, override_current_context
 import unittest
 
 
@@ -64,33 +63,6 @@ def test_runner_keeps_default_classes_in_inheritance_chain(
         cls=django_runner_cls.test_runner, base_cls=test_runner_cls,
         mixin_base_name='DjptTestRunner')
     assert django_runner_cls.test_suite == test_suite_cls
-
-
-def test_after_running_django_testcases_report_is_printed():
-
-    class SampleTestCase(unittest.TestCase):
-
-        def test_one(self):
-            results_collected.send(
-                sender=WithId('whatever'), results=[1],
-                context={'test': 'one'})
-
-        def test_two(self):
-            results_collected.send(
-                sender=WithId('whatever'), results=[2],
-                context={'test': 'two'})
-    test_run = run_testcase_with_django_runner(SampleTestCase, nr_of_tests=2)
-
-    # actual test assertions
-    test_runner = test_run['test_runner']
-    assert isinstance(test_runner.djpt_worst_report, WorstReport)
-    report_data = test_runner.djpt_worst_report.data
-    assert 'whatever' in list(report_data.keys())
-    whatever = report_data['whatever']['']
-    assert whatever.value == 2
-    assert whatever.context == {'test': 'two'}
-    printed = test_run['out']
-    assert printed.endswith(test_runner.djpt_worst_report.rendered())
 
 
 def test_runner_sets_executing_test_method_as_context():
