@@ -28,6 +28,8 @@ def run_testcase_with_django_runner(
             for (test, msg) in unexpected:
                 print('{}\n\n{}\n'.format(test, msg))
         assert not all_should_pass
+    else:
+        assert all_should_pass
 
     return dict(
         django_runner=django_runner,
