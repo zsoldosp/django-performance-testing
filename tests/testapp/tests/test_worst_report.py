@@ -119,9 +119,9 @@ def test_there_is_one_channel_per_each_name_received():
         results=[
             NameValueResult('one', 1), NameValueResult('two', 2)], context={})
     assert list(report.data.keys()) == ['id']
-    assert sorted(report.data['id'].keys()) == ['one', 'two']
-    assert (1, {}) == get_value_and_context(report, 'id', 'one')
-    assert (2, {}) == get_value_and_context(report, 'id', 'two')
+    assert get_tp_names(report, 'id') == ['one', 'two']
+    assert (1, {}) == get_value_and_context(report, 'id', tp='one')
+    assert (2, {}) == get_value_and_context(report, 'id', tp='two')
 
 
 def test_has_separate_context_for_each_channels_worst():
@@ -135,13 +135,17 @@ def test_has_separate_context_for_each_channels_worst():
         results=[NameValueResult('one', 3), NameValueResult('two', 1)],
         context={'event': 'second'})
     assert list(report.data.keys()) == ['id']
-    assert sorted(report.data['id'].keys()) == ['one', 'two']
+    assert get_tp_names(report, 'id') == ['one', 'two']
     assert (3, {'event': 'second'}) == \
-        get_value_and_context(report, 'id', 'one')
+        get_value_and_context(report, 'id', tp='one')
     assert (2, {'event': 'first'}) == \
-        get_value_and_context(report, 'id', 'two')
+        get_value_and_context(report, 'id', tp='two')
 
 
 def get_value_and_context(report, id_, tp=''):
     r = report.data[id_][tp]
     return r.value, r.context
+
+
+def get_tp_names(report, id_):
+    return sorted(report.data[id_].keys())
