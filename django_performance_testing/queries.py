@@ -30,6 +30,8 @@ class QueryCountResult(NameValueResult):
 
 class QueryCollector(BaseCollector):
 
+    settings_key = 'queries'
+
     def __enter__(self):
         self.queries = []
         self.nr_of_queries_when_entering = len(connection.queries)
@@ -88,8 +90,6 @@ def classify_query(sql):
 
 class QueryBatchLimit(BaseLimit):
     collector_cls = QueryCollector
-
-    settings_key = 'queries'
 
     quantifier = 'many'
     items_name = 'queries'

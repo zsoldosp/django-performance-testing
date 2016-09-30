@@ -5,6 +5,8 @@ from django_performance_testing.core import \
 
 class TimeCollector(BaseCollector):
 
+    settings_key = 'time'
+
     def __enter__(self):
         self.start = time()
         return self
@@ -15,8 +17,6 @@ class TimeCollector(BaseCollector):
 
 class TimeLimit(BaseLimit):
     collector_cls = TimeCollector
-
-    settings_key = 'time'
 
     quantifier = 'many'
     items_name = 'elapsed seconds'

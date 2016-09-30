@@ -178,6 +178,10 @@ class BaseLimit(object):
         settings_for_id = performance_limits.get(self.collector_id, {})
         return settings_for_id.get(self.settings_key, {})
 
+    @property
+    def settings_key(self):
+        return self.collector_cls.settings_key
+
     def __enter__(self):
         if self.is_anonymous():
             self.connect_for_results()

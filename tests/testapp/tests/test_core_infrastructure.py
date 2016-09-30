@@ -9,6 +9,10 @@ from testapp.test_helpers import \
 
 class TestCollectors(object):
 
+    def test_has_all_required_properties(self, collector_cls):
+        assert hasattr(collector_cls, 'settings_key')
+        assert isinstance(collector_cls.settings_key, str)
+
     def test_can_create_without_id(self, collector_cls):
         collector = collector_cls()
         assert collector.id_ is None
@@ -124,8 +128,9 @@ class TestLimits(object):
             BaseLimit.results_collected_handler
         assert hasattr(limit_cls, 'handle_results')
         assert callable(limit_cls.handle_results)
-        assert hasattr(limit_cls, 'settings_key')
-        assert isinstance(limit_cls.settings_key, str)
+        limit = limit_cls()
+        assert hasattr(limit, 'settings_key')
+        assert isinstance(limit.settings_key, str)
 
     def test_has_required_attrs_for_limit_violation_error(self, limit_cls):
         def assert_has_str_attr(name):
@@ -315,11 +320,11 @@ class TestCreatingSettingsBasedLimits(object):
         settings.PERFORMANCE_LIMITS = {}
         assert limit.data == {}
         settings.PERFORMANCE_LIMITS = {
-            id_: {limit_cls.settings_key: {'data': 'foo'}}
+            id_: {limit_cls().settings_key: {'data': 'foo'}}
         }
         assert limit.data == {'data': 'foo'}
         settings.PERFORMANCE_LIMITS = {
-            id_: {limit_cls.settings_key: {'whatever': 'bar'}}
+            id_: {limit_cls().settings_key: {'whatever': 'bar'}}
         }
         assert limit.data == {'whatever': 'bar'}
 
@@ -347,25 +352,25 @@ class TestCreatingSettingsBasedLimits(object):
     def test_correct_settings_data_gets_passed_on(self, limit_cls, settings):
         id_ = 'foo'
         random_str = 'bar'
+        limit = limit_cls(collector_id=id_, settings_based=True)
         settings.PERFORMANCE_LIMITS = {
             id_: {
-                limit_cls.settings_key + random_str: {
+                limit.settings_key + random_str: {
                     'bad': 'wrong second level id in P_L',
                 },
-                limit_cls.settings_key: {
+                limit.settings_key: {
                     'good': 'config'
                 }
             },
             random_str: {
-                limit_cls.settings_key + random_str: {
+                limit.settings_key + random_str: {
                     'bad': 'under wrong id in P_L',
                 },
-                limit_cls.settings_key: {
+                limit.settings_key: {
                     'bad': 'under wrong id in P_L'
                 },
             }
         }
-        limit = limit_cls(collector_id=id_, settings_based=True)
         assert limit.data == {'good': 'config'}
 
 
