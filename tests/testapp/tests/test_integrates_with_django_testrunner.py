@@ -1,7 +1,9 @@
+from datetime import timedelta
 from django.contrib.auth.models import Group
 from django.test.utils import get_runner
 from django.utils import six
 from django_performance_testing import test_runner as djpt_test_runner_module
+from freezegun import freeze_time
 import pytest
 from testapp.test_helpers import \
     run_testcase_with_django_runner, override_current_context
@@ -93,5 +95,24 @@ def test_number_of_queries_per_test_method_can_be_limited(db, settings):
 
     test_run = run_testcase_with_django_runner(
         ATestCase, nr_of_tests=1, all_should_pass=False)
+    out = test_run['out']
+    assert 'LimitViolationError: ' in out
+
+
+def test_elapsed_time_per_test_method_can_be_limited(settings):
+    settings.PERFORMANCE_LIMITS = {
+        'test method': {
+            'time': {
+                'total': 4
+            }
+        }
+    }
+
+    with freeze_time('2016-09-29 18:18:01') as frozen_time:
+        class ATestCase(unittest.TestCase):
+            def test_foo(self):
+                frozen_time.tick(timedelta(seconds=5))
+        test_run = run_testcase_with_django_runner(
+            ATestCase, nr_of_tests=1, all_should_pass=False)
     out = test_run['out']
     assert 'LimitViolationError: ' in out
