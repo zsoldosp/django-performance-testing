@@ -176,11 +176,11 @@ class BaseLimit(object):
             return self._data
         performance_limits = getattr(settings, 'PERFORMANCE_LIMITS', {})
         settings_for_id = performance_limits.get(self.collector_id, {})
-        return settings_for_id.get(self.settings_key, {})
+        return settings_for_id.get(self.type_name, {})
 
     @property
-    def settings_key(self):
-        return self.collector_cls.settings_key
+    def type_name(self):
+        return self.collector_cls.type_name
 
     def __enter__(self):
         if self.is_anonymous():

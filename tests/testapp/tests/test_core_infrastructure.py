@@ -10,8 +10,8 @@ from testapp.test_helpers import \
 class TestCollectors(object):
 
     def test_has_all_required_properties(self, collector_cls):
-        assert hasattr(collector_cls, 'settings_key')
-        assert isinstance(collector_cls.settings_key, str)
+        assert hasattr(collector_cls, 'type_name')
+        assert isinstance(collector_cls.type_name, str)
 
     def test_can_create_without_id(self, collector_cls):
         collector = collector_cls()
@@ -129,8 +129,8 @@ class TestLimits(object):
         assert hasattr(limit_cls, 'handle_results')
         assert callable(limit_cls.handle_results)
         limit = limit_cls()
-        assert hasattr(limit, 'settings_key')
-        assert isinstance(limit.settings_key, str)
+        assert hasattr(limit, 'type_name')
+        assert isinstance(limit.type_name, str)
 
     def test_has_required_attrs_for_limit_violation_error(self, limit_cls):
         def assert_has_str_attr(name):
@@ -320,11 +320,11 @@ class TestCreatingSettingsBasedLimits(object):
         settings.PERFORMANCE_LIMITS = {}
         assert limit.data == {}
         settings.PERFORMANCE_LIMITS = {
-            id_: {limit_cls().settings_key: {'data': 'foo'}}
+            id_: {limit_cls().type_name: {'data': 'foo'}}
         }
         assert limit.data == {'data': 'foo'}
         settings.PERFORMANCE_LIMITS = {
-            id_: {limit_cls().settings_key: {'whatever': 'bar'}}
+            id_: {limit_cls().type_name: {'whatever': 'bar'}}
         }
         assert limit.data == {'whatever': 'bar'}
 
@@ -355,18 +355,18 @@ class TestCreatingSettingsBasedLimits(object):
         limit = limit_cls(collector_id=id_, settings_based=True)
         settings.PERFORMANCE_LIMITS = {
             id_: {
-                limit.settings_key + random_str: {
+                limit.type_name + random_str: {
                     'bad': 'wrong second level id in P_L',
                 },
-                limit.settings_key: {
+                limit.type_name: {
                     'good': 'config'
                 }
             },
             random_str: {
-                limit.settings_key + random_str: {
+                limit.type_name + random_str: {
                     'bad': 'under wrong id in P_L',
                 },
-                limit.settings_key: {
+                limit.type_name: {
                     'bad': 'under wrong id in P_L'
                 },
             }

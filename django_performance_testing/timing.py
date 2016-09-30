@@ -5,7 +5,7 @@ from django_performance_testing.core import \
 
 class TimeCollector(BaseCollector):
 
-    settings_key = 'time'
+    type_name = 'time'
 
     def __enter__(self):
         self.start = time()

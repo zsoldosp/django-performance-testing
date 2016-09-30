@@ -30,7 +30,7 @@ class QueryCountResult(NameValueResult):
 
 class QueryCollector(BaseCollector):
 
-    settings_key = 'queries'
+    type_name = 'queries'
 
     def __enter__(self):
         self.queries = []
