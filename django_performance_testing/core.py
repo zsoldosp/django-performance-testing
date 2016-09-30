@@ -198,6 +198,8 @@ class BaseLimit(object):
     def results_collected_handler(
             self, signal, sender, results, context, **kwargs):
         assert kwargs == {}, 'expected no kwargs, but got {!r}'.format(kwargs)
+        if not isinstance(sender, self.collector_cls):
+            return
         if not self.is_anonymous():
             if self.collector_id != sender.id_:
                 return

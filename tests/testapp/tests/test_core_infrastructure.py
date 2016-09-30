@@ -243,6 +243,25 @@ class TestLimitsListeningOnSignals(object):
             {'results': [5], 'context': {'should': 'receive'}},
         ]
 
+    def test_only_listens_to_its_own_typed_collector(self, limit_cls):
+        id_ = 'id to listen to'
+
+        class OtherCollectorType(BaseCollector):
+            pass
+
+        listened_to = limit_cls.collector_cls(id_=id_)
+        unlistened = OtherCollectorType(id_=id_)
+        limit = self.get_call_capturing_limit(
+            limit_cls=limit_cls, collector_id=id_)
+        results_collected.send(
+            sender=listened_to, results=[1], context={'should': 'receive'})
+        results_collected.send(
+            sender=unlistened, results=[2], context={'not': 'received'})
+        assert len(limit.calls) == 1
+        assert limit.calls == [
+            {'results': [1], 'context': {'should': 'receive'}},
+        ]
+
     def test_only_listens_to_its_collector_anonymous(self, limit_cls):
         limit = self.get_call_capturing_limit(limit_cls=limit_cls)
         listened_to = limit.collector
