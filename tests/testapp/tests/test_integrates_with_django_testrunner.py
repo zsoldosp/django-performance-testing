@@ -2,7 +2,6 @@ from django.contrib.auth.models import Group
 from django.test.utils import get_runner
 from django.utils import six
 from django_performance_testing import test_runner as djpt_test_runner_module
-from django_performance_testing.reports import WorstReport
 import pytest
 from testapp.test_helpers import \
     run_testcase_with_django_runner, override_current_context
@@ -96,17 +95,3 @@ def test_number_of_queries_per_test_method_can_be_limited(db, settings):
         ATestCase, nr_of_tests=1, all_should_pass=False)
     out = test_run['out']
     assert 'LimitViolationError: ' in out
-
-    test_runner = test_run['test_runner']
-    assert isinstance(test_runner.djpt_worst_report, WorstReport)
-    report_data = test_runner.djpt_worst_report.data
-    assert 'test method' in list(report_data.keys())
-    worst_test_method = report_data['test method']['total']
-    assert worst_test_method.value == 1
-    assert len(worst_test_method.context) == 1
-    worst_test = worst_test_method.context['test name']
-    assert len(worst_test) == 1
-    assert worst_test[0].startswith(
-        'test_foo (testapp.tests.test_integrates_with_django_testrunner.')
-    assert worst_test[0].endswith('.ATestCase)')
-    assert out.endswith(test_runner.djpt_worst_report.rendered())
