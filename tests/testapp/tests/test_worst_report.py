@@ -11,18 +11,15 @@ def test_has_worst_value_and_its_context():
     results_collected.send(
         sender=WithId('id'), results=[4], context={'first': 'context'})
     assert len(report.data) == 1
-    assert report.data['id'][''].value == 4
-    assert report.data['id'][''].context == {'first': 'context'}
+    assert (4, {'first': 'context'}) == get_value_and_context(report, 'id')
     results_collected.send(
         sender=WithId('id'), results=[7], context={'2nd': 'context'})
     assert len(report.data) == 1
-    assert report.data['id'][''].value == 7
-    assert report.data['id'][''].context == {'2nd': 'context'}
+    assert (7, {'2nd': 'context'}) == get_value_and_context(report, 'id')
     results_collected.send(
         sender=WithId('id'), results=[5], context={'3rd': 'context'})
     assert len(report.data) == 1
-    assert report.data['id'][''].value == 7
-    assert report.data['id'][''].context == {'2nd': 'context'}
+    assert (7, {'2nd': 'context'}) == get_value_and_context(report, 'id')
 
 
 def test_has_copy_of_the_context():
@@ -31,10 +28,11 @@ def test_has_copy_of_the_context():
     results_collected.send(
         sender=WithId('foo'), results=[4], context=sent_context)
     assert len(report.data) == 1
-    assert report.data['foo'][''].context == {'sent': 'context'}
-    assert id(report.data['foo'][''].context) != id(sent_context)
+    r_val, r_context = get_value_and_context(report, 'foo')
+    assert r_context == {'sent': 'context'}
+    assert id(r_context) != id(sent_context)
     sent_context['another'] = 'entry'
-    assert report.data['foo'][''].context == {'sent': 'context'}
+    assert r_context == {'sent': 'context'}
 
 
 def test_handles_multiple_sender_ids_as_separate_items():
@@ -44,10 +42,8 @@ def test_handles_multiple_sender_ids_as_separate_items():
     results_collected.send(
         sender=WithId('id two'), results=['z'], context={'context': 'two'})
     assert len(report.data) == 2
-    assert report.data['id one'][''].value == 'a'
-    assert report.data['id one'][''].context == {'context': 'one'}
-    assert report.data['id two'][''].value == 'z'
-    assert report.data['id two'][''].context == {'context': 'two'}
+    assert ('a', {'context': 'one'}) == get_value_and_context(report, 'id one')
+    assert ('z', {'context': 'two'}) == get_value_and_context(report, 'id two')
 
 
 def test_result_repr_is_human_readable():
@@ -106,14 +102,14 @@ def test_report_can_deal_with_single_anonymous_result_not_with_more():
         signal=None, sender=WithId('foo'),
         results=[9], context={})
     assert list(report.data.keys()) == ['foo']
-    assert report.data['foo'][''].value == 9
+    assert get_value_and_context(report, 'foo')[0] == 9
     with pytest.raises(TypeError) as excinfo:
         report.handle_results_collected(
             signal=None, sender=WithId('foo'),
             results=[1, 2], context={})
     assert 'Duplicate result name(s): \'\'' == str(excinfo.value)
     assert list(report.data.keys()) == ['foo']
-    assert report.data['foo'][''].value == 9
+    assert get_value_and_context(report, 'foo')[0] == 9
 
 
 def test_there_is_one_channel_per_each_name_received():
@@ -124,10 +120,8 @@ def test_there_is_one_channel_per_each_name_received():
             NameValueResult('one', 1), NameValueResult('two', 2)], context={})
     assert list(report.data.keys()) == ['id']
     assert sorted(report.data['id'].keys()) == ['one', 'two']
-    assert report.data['id']['one'].value == 1
-    assert report.data['id']['one'].context == {}
-    assert report.data['id']['two'].value == 2
-    assert report.data['id']['two'].context == {}
+    assert (1, {}) == get_value_and_context(report, 'id', 'one')
+    assert (2, {}) == get_value_and_context(report, 'id', 'two')
 
 
 def test_has_separate_context_for_each_channels_worst():
@@ -142,7 +136,12 @@ def test_has_separate_context_for_each_channels_worst():
         context={'event': 'second'})
     assert list(report.data.keys()) == ['id']
     assert sorted(report.data['id'].keys()) == ['one', 'two']
-    assert report.data['id']['one'].value == 3
-    assert report.data['id']['one'].context == {'event': 'second'}
-    assert report.data['id']['two'].value == 2
-    assert report.data['id']['two'].context == {'event': 'first'}
+    assert (3, {'event': 'second'}) == \
+        get_value_and_context(report, 'id', 'one')
+    assert (2, {'event': 'first'}) == \
+        get_value_and_context(report, 'id', 'two')
+
+
+def get_value_and_context(report, id_, tp=''):
+    r = report.data[id_][tp]
+    return r.value, r.context
