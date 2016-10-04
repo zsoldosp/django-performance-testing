@@ -31,7 +31,7 @@ class WorstReport(object):
             return d
 
         def handle_result(name, result):
-            d = get_data(sender.id_)
+            d = get_data(sender.id_, sender.type_name)
             current = d.get(name, None)
             if current is None or current.value < result:
                 d[name] = Result(value=result, context=copy.deepcopy(context))

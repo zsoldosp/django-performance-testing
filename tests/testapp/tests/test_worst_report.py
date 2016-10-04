@@ -3,7 +3,7 @@ from django.utils import six
 from django_performance_testing.core import NameValueResult
 from django_performance_testing.reports import WorstReport, Result
 from django_performance_testing.signals import results_collected
-from testapp.test_helpers import WithId
+from testapp.test_helpers import WithId, FakeSender
 
 
 def test_has_worst_value_and_its_context():
@@ -63,25 +63,27 @@ def test_result_repr_is_human_readable():
 expected_report_data = """
 Worst Performing Items
 
-id 1 - querycount:
-==================
-  two: 2
-    test: some.app.tests.TestCase.test_foo
-id 2 - querycount:
-==================
-  nine: 9
-    foo: bar
+id 1:
+=====
+  querycount:
+    two: 2
+      test: some.app.tests.TestCase.test_foo
+id 2:
+=====
+  querycount:
+    nine: 9
+      foo: bar
 """.strip()
 
 
 def test_report_printed_includes_all_needed_data():
     report = WorstReport()
     report.handle_results_collected(
-        signal=None, sender=WithId('id 2 - querycount'),
+        signal=None, sender=FakeSender('id 2', 'querycount'),
         results=[
             NameValueResult(name='nine', value=9)], context={'foo': 'bar'})
     report.handle_results_collected(
-        signal=None, sender=WithId('id 1 - querycount'),
+        signal=None, sender=FakeSender('id 1', 'querycount'),
         results=[NameValueResult(name='two', value=2)],
         context={'test': 'some.app.tests.TestCase.test_foo'})
     stream = six.StringIO()
@@ -142,10 +144,30 @@ def test_has_separate_context_for_each_channels_worst():
         get_value_and_context(report, 'id', tp='two')
 
 
-def get_value_and_context(report, id_, tp=''):
-    r = report.data[id_][tp]
+def test_has_separate_section_for_each_sender_type():
+    report = WorstReport()
+    report.handle_results_collected(
+        signal=None, sender=FakeSender('id', 'type one'),
+        results=[NameValueResult('count', 1)], context={'event': 'first'})
+    report.handle_results_collected(
+        signal=None, sender=FakeSender('id', 'type two'),
+        results=[NameValueResult('count', 3)], context={'event': 'second'})
+    assert list(report.data.keys()) == ['id']
+    assert get_type_names(report, 'id') == ['type one', 'type two']
+    assert (1, {'event': 'first'}) == \
+        get_value_and_context(report, 'id', 'type one', 'count')
+    assert (3, {'event': 'second'}) == \
+        get_value_and_context(report, 'id', 'type two', 'count')
+
+
+def get_value_and_context(report, id_, type_name='type name', tp=''):
+    r = report.data[id_][type_name][tp]
     return r.value, r.context
 
 
-def get_tp_names(report, id_):
+def get_tp_names(report, id_, type_name='type name'):
+    return sorted(report.data[id_][type_name].keys())
+
+
+def get_type_names(report, id_):
     return sorted(report.data[id_].keys())
