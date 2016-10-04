@@ -78,6 +78,8 @@ And the following types of limits are supported:
 
   * ``queries`` - contains the values for query count limits, such as
     ``read``, ``write``, ``other``, ``total``
+  * ``time`` - can specify a limit for the ``total`` elapses seconds for the
+    given limit point
 
 Sample Settings
 ---------------
@@ -86,7 +88,8 @@ Sample Settings
 
     PERFORMANCE_LIMITS = {
         'test method': {
-            'queries': {'total': 50}  # want to keep the tests focused
+            'queries': {'total': 50},  # want to keep the tests focused
+            'time': {'total': 0.2},  # want fast integrated tests, so aiming for 1/5 seconds
         },
         'django.test.client.Client': {
             'queries': {
@@ -114,6 +117,7 @@ To support that, the limits can be used as context managers, e.g.:
 ::
 
     from django_performance_testing.queries import QueryBatchLimit
+    from django_performance_testing.timing import TimeLimit
     ...
     
     def my_method_with_too_many_queries(request):
@@ -128,7 +132,8 @@ To support that, the limits can be used as context managers, e.g.:
                 return HttpResponseRedirect(...)
         else:
             with QueryBatchLimit(write=0):  # render form
-                return form_invalid(form)
+                with TimeLimit(total=0.01):   # we need superfast templates
+                    return form_invalid(form)
 
 Release Notes
 =============
@@ -138,7 +143,10 @@ Release Notes
   * add timing measurement that can be limited
   * remove uniqueness check for ``collector.id_``, as the problems it caused
     for testing outweighed its benefit for developer debugging aid
-  * backwards incompatible: change how settings based limits are specified
+  * backwards incompatible:
+
+    * change how settings based limits are specified
+    * change the worst report data output/data structure
 
 * 0.1.1 - bugfix release
 
