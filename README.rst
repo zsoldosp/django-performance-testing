@@ -82,7 +82,7 @@ And the following types of limits are supported:
     given limit point
 
 Sample Settings
----------------
+~~~~~~~~~~~~~~~
 
 ::
 
@@ -107,7 +107,7 @@ Sample Settings
     }
 
 Ad-Hoc Limits
-=============
+-------------
 
 While the built-in measurement points are great, sometimes, when profiling
 and trying to improve sections of the code, more granular limits are needed.
