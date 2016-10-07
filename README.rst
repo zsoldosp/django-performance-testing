@@ -58,6 +58,11 @@ ignored during the check, as if there were no limit rules for. Thus it's
 possible to only focus on no write queries, while ignoring all the other queries
 that might be executed.
 
+Time
+----
+
+Sets the limit on the ``total`` elapsed seconds.
+
 Setting Limits
 ==============
 
@@ -74,12 +79,10 @@ Following are the keys that are currently supported for
 * ``test method`` - the actual various ``unittest`` test methods that
   you write for your app
 
-And the following types of limits are supported:
-
-  * ``queries`` - contains the values for query count limits, such as
-    ``read``, ``write``, ``other``, ``total``
-  * ``time`` - can specify a limit for the ``total`` elapses seconds for the
-    given limit point
+For each of the above keys, there is a ``dict`` that holds the actual limits.
+The keys are the limit types (``queries`` and/or ``time``), and the value is
+yet another ``dict``, holding the actual limit values. For valid values, see
+the description of the limits above, or look at the sample settings
 
 Sample Settings
 ~~~~~~~~~~~~~~~
