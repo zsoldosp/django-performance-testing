@@ -23,13 +23,19 @@ class WorstReport(object):
         name_value_pairs = list(map(self.to_name_value_pair, results))
         self.ensure_unique_names(name_value_pairs)
 
+        def get_data(*parts):
+            d = self.data
+            for p in parts:
+                d.setdefault(p, {})
+                d = d[p]
+            return d
+
         def handle_result(name, result):
-            d = self.data[sender.id_]
+            d = get_data(sender.id_, sender.type_name)
             current = d.get(name, None)
             if current is None or current.value < result:
                 d[name] = Result(value=result, context=copy.deepcopy(context))
 
-        self.data.setdefault(sender.id_, {})
         for name, result in name_value_pairs:
             handle_result(name, result)
 

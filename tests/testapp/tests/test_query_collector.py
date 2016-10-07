@@ -16,9 +16,8 @@ from testapp.test_helpers import capture_result_collected
         (lambda: Group.objects.update(name='bar'), 1, 1, 0),
         (lambda: Group.objects.all().delete(), 1, 1, 0),
     ], ids=['insert', 'select', 'update', 'delete'])
-def test_captures_and_classifies_inserts(db, code,
-                                         total_lo_limit, write_lo_limit,
-                                         read_lo_limit):
+def test_captures_and_classifies_each_query_type(
+        db, code, total_lo_limit, write_lo_limit, read_lo_limit):
 
     # 'coz of new, 'smart' delete need an item
     Group.objects.create(name='random')

@@ -1,16 +1,43 @@
+from datetime import timedelta
 from django.contrib.auth.models import Group
 from django.template import loader
 from django_performance_testing.core import LimitViolationError
+from freezegun import freeze_time
 import pytest
 
 
 def test_has_support_for_number_of_queries_in_templates(db, settings):
-    print(settings.TEMPLATES)
     settings.PERFORMANCE_LIMITS = {
-        'Template.render': {'total': 0}}
+        'Template.render': {
+            'queries': {
+                'total': 0
+            }
+        }
+    }
     template = loader.get_template('all-group-names.markdown')
     with pytest.raises(LimitViolationError) as excinfo:
         template.render(context={'groups': Group.objects.all()})
 
-    expected_error_message = '{\'template\': [\'all-group-names.markdown\']}'
-    assert expected_error_message in str(excinfo.value)
+    assert excinfo.value.context == {'template': ['all-group-names.markdown']}
+
+
+def test_has_support_for_elapsed_time_in_template_render(settings):
+    settings.PERFORMANCE_LIMITS = {
+        'Template.render': {
+            'time': {
+                'total': 0
+            }
+        }
+    }
+    template = loader.get_template('all-group-names.markdown')
+    with freeze_time('2016-09-29 15:52:01') as frozen_time:
+        class SlowIterable(object):
+            def __iter__(self):
+                yield 'foo'
+                frozen_time.tick(timedelta(seconds=5))
+                yield 'bar'
+
+        with pytest.raises(LimitViolationError) as excinfo:
+            template.render(context={'groups': SlowIterable()})
+
+    assert excinfo.value.context == {'template': ['all-group-names.markdown']}

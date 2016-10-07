@@ -74,21 +74,35 @@ Following are the keys that are currently supported for
 * ``test method`` - the actual various ``unittest`` test methods that
   you write for your app
 
+And the following types of limits are supported:
+
+  * ``queries`` - contains the values for query count limits, such as
+    ``read``, ``write``, ``other``, ``total``
+  * ``time`` - can specify a limit for the ``total`` elapses seconds for the
+    given limit point
+
 Sample Settings
 ---------------
 
 ::
 
     PERFORMANCE_LIMITS = {
-        'test method': {'total': 50},  # want to keep the tests focused
+        'test method': {
+            'queries': {'total': 50},  # want to keep the tests focused
+            'time': {'total': 0.2},  # want fast integrated tests, so aiming for 1/5 seconds
+        },
         'django.test.client.Client': {
-            'read': 30,
-            'write': 8,  # do not create complex object structures in the web
-                         # process
+            'queries': {
+                'read': 30,
+                'write': 8,  # do not create complex object structures in the web
+                             # process
+            },
         },
         'Template.render': {
-            'write': 0,  # rendering a template should never write to the database!
-            'read': 0
+            'queries': {
+                'write': 0,  # rendering a template should never write to the database!
+                'read': 0
+            }
         }
     }
 
@@ -103,6 +117,7 @@ To support that, the limits can be used as context managers, e.g.:
 ::
 
     from django_performance_testing.queries import QueryBatchLimit
+    from django_performance_testing.timing import TimeLimit
     ...
     
     def my_method_with_too_many_queries(request):
@@ -117,10 +132,21 @@ To support that, the limits can be used as context managers, e.g.:
                 return HttpResponseRedirect(...)
         else:
             with QueryBatchLimit(write=0):  # render form
-                return form_invalid(form)
+                with TimeLimit(total=0.01):   # we need superfast templates
+                    return form_invalid(form)
 
 Release Notes
 =============
+
+* 0.2.0
+
+  * add timing measurement that can be limited
+  * remove uniqueness check for ``collector.id_``, as the problems it caused
+    for testing outweighed its benefit for developer debugging aid
+  * backwards incompatible:
+
+    * change how settings based limits are specified
+    * change the worst report data output/data structure
 
 * 0.1.1 - bugfix release
 

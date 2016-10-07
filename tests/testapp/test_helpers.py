@@ -6,9 +6,13 @@ from django_performance_testing import context
 from django_performance_testing.signals import results_collected
 
 
-WithId = namedtuple('WithId', ('id_',))
+FakeSender = namedtuple('FakeSender', ('id_', 'type_name'))
 
-NameValue = namedtuple('NameValue', ('name', 'value'))
+
+class WithId(FakeSender):
+
+    def __new__(cls, id_):
+        return super(WithId, cls).__new__(cls, id_, 'type name')
 
 
 def run_testcase_with_django_runner(
@@ -30,6 +34,8 @@ def run_testcase_with_django_runner(
             for (test, msg) in unexpected:
                 print('{}\n\n{}\n'.format(test, msg))
         assert not all_should_pass
+    else:
+        assert all_should_pass
 
     return dict(
         django_runner=django_runner,
