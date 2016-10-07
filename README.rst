@@ -1,5 +1,5 @@
 ==========================
-django-performance-testing
+Django Performance Testing
 ==========================
 
 .. image:: https://travis-ci.org/PaesslerAG/django-performance-testing.svg?branch=master
@@ -7,7 +7,7 @@ django-performance-testing
 
 .. contents:: Performance testing for Django through your automated tests!
 
-Don't leave performance testing until the end of the project! We have learned
+Don't wait with performance testing until the end of the project! We have learned
 already that more frequent feedback on smaller chunks of changes is much better,
 e.g.: TDD, CI, DevOps, Agile, etc.
 
@@ -16,10 +16,10 @@ integrating it seemlessy into your existing development cycle, without
 requiring changes to your development workflow.
 
 Unlike regular performance testing tools (``ab``, ``tsung``, etc.), this
-libary relies on indirect (proxy) indicators to performence - e.g.: the number
+libary relies on indirect (proxy) indicators to performance - e.g.: the number
 of queries executed. It's a good rule of thumb that the more SQL there is, the
 slower it will be. And this way "performance" testing won't be slower than your
-normal tests! (Disclimer: while this tool is useful, classic performance
+normal tests! (Disclaimer: while this tool is useful, classic performance
 testing is still recommended!)
 
 
@@ -109,7 +109,7 @@ Sample Settings
 Ad-Hoc Limits
 =============
 
-While the builtin measurement points are great, sometimes, when profiling
+While the built-in measurement points are great, sometimes, when profiling
 and trying to improve sections of the code, more granular limits are needed.
 To support that, the limits can be used as context managers, e.g.:
 
