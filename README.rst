@@ -12,14 +12,14 @@ already that more frequent feedback on smaller chunks of changes is much better,
 e.g.: TDD, CI, DevOps, Agile, etc.
 
 This library helps by providing performance testing from the start -
-integrating it seemlessy into your existing development cycle, without
+integrating it seamlessly into your existing development cycle, without
 requiring changes to your development workflow.
 
 Unlike regular performance testing tools (``ab``, ``tsung``, etc.), this
-libary relies on indirect (proxy) indicators to performence - e.g.: the number
+libary relies on indirect (proxy) indicators to performance - e.g.: the number
 of queries executed. It's a good rule of thumb that the more SQL there is, the
 slower it will be. And this way "performance" testing won't be slower than your
-normal tests! (Disclimer: while this tool is useful, classic performance
+normal tests! (Disclaimer: while this tool is useful, classic performance
 testing is still recommended!)
 
 
