@@ -1,5 +1,5 @@
 ==========================
-django-performance-testing
+Django Performance Testing
 ==========================
 
 .. image:: https://travis-ci.org/PaesslerAG/django-performance-testing.svg?branch=master
@@ -7,7 +7,7 @@ django-performance-testing
 
 .. contents:: Performance testing for Django through your automated tests!
 
-Don't leave performance testing until the end of the project! We have learned
+Don't wait with performance testing until the end of the project! We have learned
 already that more frequent feedback on smaller chunks of changes is much better,
 e.g.: TDD, CI, DevOps, Agile, etc.
 
@@ -16,10 +16,10 @@ integrating it seemlessy into your existing development cycle, without
 requiring changes to your development workflow.
 
 Unlike regular performance testing tools (``ab``, ``tsung``, etc.), this
-libary relies on indirect (proxy) indicators to performence - e.g.: the number
+libary relies on indirect (proxy) indicators to performance - e.g.: the number
 of queries executed. It's a good rule of thumb that the more SQL there is, the
 slower it will be. And this way "performance" testing won't be slower than your
-normal tests! (Disclimer: while this tool is useful, classic performance
+normal tests! (Disclaimer: while this tool is useful, classic performance
 testing is still recommended!)
 
 
@@ -58,6 +58,11 @@ ignored during the check, as if there were no limit rules for. Thus it's
 possible to only focus on no write queries, while ignoring all the other queries
 that might be executed.
 
+Time
+----
+
+Sets the limit on the ``total`` elapsed seconds.
+
 Setting Limits
 ==============
 
@@ -74,15 +79,13 @@ Following are the keys that are currently supported for
 * ``test method`` - the actual various ``unittest`` test methods that
   you write for your app
 
-And the following types of limits are supported:
-
-  * ``queries`` - contains the values for query count limits, such as
-    ``read``, ``write``, ``other``, ``total``
-  * ``time`` - can specify a limit for the ``total`` elapses seconds for the
-    given limit point
+For each of the above keys, there is a ``dict`` that holds the actual limits.
+The keys are the limit types (``queries`` and/or ``time``), and the value is
+yet another ``dict``, holding the actual limit values. For valid values, see
+the description of the limits above, or look at the sample settings
 
 Sample Settings
----------------
+~~~~~~~~~~~~~~~
 
 ::
 
@@ -107,9 +110,9 @@ Sample Settings
     }
 
 Ad-Hoc Limits
-=============
+-------------
 
-While the builtin measurement points are great, sometimes, when profiling
+While the built-in measurement points are great, sometimes, when profiling
 and trying to improve sections of the code, more granular limits are needed.
 To support that, the limits can be used as context managers, e.g.:
 
