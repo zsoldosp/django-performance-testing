@@ -12,7 +12,7 @@ already that more frequent feedback on smaller chunks of changes is much better,
 e.g.: TDD, CI, DevOps, Agile, etc.
 
 This library helps by providing performance testing from the start -
-integrating it seemlessy into your existing development cycle, without
+integrating it seamlessly into your existing development cycle, without
 requiring changes to your development workflow.
 
 Unlike regular performance testing tools (``ab``, ``tsung``, etc.), this
