@@ -1,0 +1,2 @@
+class LimitTwo(object):
+    pass
