@@ -1,7 +1,5 @@
 from django.utils import six
 
-registry = {}
-
 
 class RegistryMeta(type):
 
