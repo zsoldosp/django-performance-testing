@@ -29,7 +29,7 @@ clean-pyc:
 	find . -name '*~' -exec rm -f {} +
 
 lint:
-	flake8 django_performance_testing tests
+	flake8 django_performance_testing tests proof-of-concepts
 
 test:
 	#python manage.py test testapp --traceback
