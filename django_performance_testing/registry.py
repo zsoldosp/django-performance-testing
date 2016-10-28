@@ -4,7 +4,7 @@ from django.utils.module_loading import import_string
 from django.utils import six
 
 
-class DuplicateNamesError(ValueError):
+class DuplicateNamesError(TypeError):
     pass
 
 

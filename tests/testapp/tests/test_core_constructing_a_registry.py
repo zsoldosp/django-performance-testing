@@ -26,7 +26,7 @@ def test_registry_building_happy_path(
 
 
 def test_duplicate_name_error_is_a_value_error():
-    assert issubclass(DuplicateNamesError, ValueError)
+    assert issubclass(DuplicateNamesError, TypeError)
 
 
 @pytest.mark.parametrize(
