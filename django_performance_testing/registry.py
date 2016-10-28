@@ -18,3 +18,8 @@ class UniqueNamedClassRegistry(object):
 
     def _to_cls(self, dotted_path):
         return import_string(dotted_path)
+
+
+class SettingsOrDefaultBasedRegistry(UniqueNamedClassRegistry):
+    def __init__(self):
+        super(SettingsOrDefaultBasedRegistry, self).__init__(self.defaults)
