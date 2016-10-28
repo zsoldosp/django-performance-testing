@@ -1,6 +1,13 @@
 from django.utils import six
 
 
+# NOTE: the downside here is that we will not be able to control the order
+#       of the limits as they get applied. Thus this - or alternatively, a
+#       decorator based approach wouldn't be right, as one might want to
+#       be explicit about what context will be shown for what. So probably
+#       a settings (with meaningful default) + some diagnostics code (that
+#       would warn if a given class is not present in settings/is duplicate)
+#       should be more hepful
 class RegistryMeta(type):
 
     def __new__(mcs, name, bases, attrs):
