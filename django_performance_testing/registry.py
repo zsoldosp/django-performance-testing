@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from django.conf import settings
 from django.utils.module_loading import import_string
 from django.utils import six
 
@@ -27,4 +28,6 @@ class SettingsOrDefaultBasedRegistry(UniqueNamedClassRegistry):
 
     @property
     def dotted_paths_for_init(self):
-        return self.defaults
+        if not hasattr(settings, self.settings_name):
+            return self.defaults
+        return getattr(settings, self.settings_name)

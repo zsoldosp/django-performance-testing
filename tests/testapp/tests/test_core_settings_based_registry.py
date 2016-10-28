@@ -42,3 +42,11 @@ def test_when_no_settings_specified_defaults_are_used(settings):
     assert not hasattr(settings, SODBRToTest.settings_name)
     vals = ('asd', '2asd')
     assert SODBRToTest(vals).dotted_paths_for_init == vals
+
+
+def test_when_settings_exist_that_is_taken_and_default_is_ignored(settings):
+    settings.DJPT_DOTTED_PATHS_FOR_TESTING = ('asd',)
+    defaults = ('qwert',)
+    assert settings.DJPT_DOTTED_PATHS_FOR_TESTING != defaults  # sanity check
+    sut = SODBRToTest(defaults=defaults)
+    assert sut.dotted_paths_for_init == settings.DJPT_DOTTED_PATHS_FOR_TESTING
