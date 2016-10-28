@@ -4,7 +4,7 @@ from testapp.sixmock import patch
 
 
 class SODBRToTest(SettingsOrDefaultBasedRegistry):
-    settings_name = 'NO_SUCH_SETTING'
+    settings_name = 'DJPT_DOTTED_PATHS_FOR_TESTING'
 
     def __init__(self, defaults=None):
         if defaults is None:
