@@ -22,4 +22,9 @@ class UniqueNamedClassRegistry(object):
 
 class SettingsOrDefaultBasedRegistry(UniqueNamedClassRegistry):
     def __init__(self):
-        super(SettingsOrDefaultBasedRegistry, self).__init__(self.defaults)
+        super(SettingsOrDefaultBasedRegistry, self).__init__(
+            self.dotted_paths_for_init)
+
+    @property
+    def dotted_paths_for_init(self):
+        return self.defaults

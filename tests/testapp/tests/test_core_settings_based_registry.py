@@ -26,7 +26,9 @@ def test_sanity_check_test_double(settings):
     default_defaults = SODBRToTest()
     default_defaults.uncr_init_mock.assert_called_once_with(
         default_defaults, tuple())
+    assert tuple() == default_defaults.dotted_paths_for_init
     vals = ('abc', 'def')
     default_from_args = SODBRToTest(vals)
     default_from_args.uncr_init_mock.assert_called_once_with(
         default_from_args, vals)
+    assert vals == default_from_args.dotted_paths_for_init
