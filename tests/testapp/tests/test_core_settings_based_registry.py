@@ -32,3 +32,13 @@ def test_sanity_check_test_double(settings):
     default_from_args.uncr_init_mock.assert_called_once_with(
         default_from_args, vals)
     assert vals == default_from_args.dotted_paths_for_init
+
+
+def test_when_no_settings_specified_defaults_are_used(settings):
+    """
+        'dupicate' of test_sanity_check_test_double as code goes,
+        but not by intent, hence the separate test
+    """
+    assert not hasattr(settings, SODBRToTest.settings_name)
+    vals = ('asd', '2asd')
+    assert SODBRToTest(vals).dotted_paths_for_init == vals
