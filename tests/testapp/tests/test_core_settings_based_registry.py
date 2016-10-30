@@ -64,3 +64,7 @@ def test_assert_configured_global_limits_registry(settings):
     assert len(core.limits_registry.defaults) == 2
     assert core.limits_registry.name2cls['QueryBatchLimit'] == QueryBatchLimit
     assert core.limits_registry.name2cls['TimeLimit'] == TimeLimit
+
+
+def test_all_known_limits_are_present_in_the_gobal_registry(limit_cls):
+    assert limit_cls in list(core.limits_registry.name2cls.values())
