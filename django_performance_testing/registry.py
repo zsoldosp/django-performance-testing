@@ -10,6 +10,9 @@ class DuplicateNamesError(TypeError):
 
 class UniqueNamedClassRegistry(object):
     def __init__(self, dotted_paths):
+        self._build_name2cls(dotted_paths)
+
+    def _build_name2cls(self, dotted_paths):
         self.name2cls = OrderedDict(
             (cls.__name__, cls)
             for cls in six.moves.map(self._to_cls, dotted_paths)
