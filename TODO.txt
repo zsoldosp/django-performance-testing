@@ -1,34 +1,8 @@
-registry.py
-   class SettingsBased(tuple):
-       ....
-       def is_defined(self):
-           return hasattr(settings, 'PERFORMANCE_LIMIT_TYPES')
+use for template tags
 
-   Defaults = (..., ...)
-
-   class AppReadyStrings(tuple):
-       def __init__(self):
-           settings_based = SettingsBased()
-           if settings_based.is_defined():
-               entries = settings_based
-           else:
-               entries = Defaults
-           super(AppReadyStrings, self).__init__(*entries)
-
-
-   class UniqueClassNameRegistry
-       def __init__(self, dotted_paths):
-           self.name2cls = OrderedDict()
-           for fullname in dotted_paths:
-               cls = django.utils.module_loading.import_string(fullname)
-               name = cls.__name__
-               if name in self.name2cls:
-                  raise TypeError()
-               self.name2cls[name] = cls
-
-
+future, out of scope now for registry
+--------------------------------------
 need to write settings_changed_handler too
-can use for template tags
 use it for app ready integration points, simplifying integrate_** methods
     should use runtime value of settings
     focus on templates - can it be released w/out rewriting the integration?
