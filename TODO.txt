@@ -1,4 +1,7 @@
 use for template tags
+rename limits settings to be consistent with the DJPT_ prefix
+   add deprecation warning for old style
+   should I also update the tests to run both versions?
 
 future, out of scope now for registry
 --------------------------------------

@@ -25,6 +25,14 @@ class UniqueNamedClassRegistry(object):
 
 
 class SettingsOrDefaultBasedRegistry(UniqueNamedClassRegistry):
+
+    settings_name = 'DJPT_KNOWN_LIMITS_DOTTED_PATHS'
+
+    defaults = (
+        'django_performance_testing.queries.QueryBatchLimit',
+        'django_performance_testing.timing.TimeLimit',
+    )
+
     def __init__(self):
         super(SettingsOrDefaultBasedRegistry, self).__init__(
             self.dotted_paths_for_init)

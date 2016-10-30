@@ -1,5 +1,8 @@
+from django_performance_testing import core
+from django_performance_testing.queries import QueryBatchLimit
 from django_performance_testing.registry import \
     SettingsOrDefaultBasedRegistry, UniqueNamedClassRegistry
+from django_performance_testing.timing import TimeLimit
 from testapp.sixmock import patch
 
 
@@ -50,3 +53,14 @@ def test_when_settings_exist_that_is_taken_and_default_is_ignored(settings):
     assert settings.DJPT_DOTTED_PATHS_FOR_TESTING != defaults  # sanity check
     sut = SODBRToTest(defaults=defaults)
     assert sut.dotted_paths_for_init == settings.DJPT_DOTTED_PATHS_FOR_TESTING
+
+
+def test_assert_configured_global_limits_registry(settings):
+    assert isinstance(core.limits_registry, SettingsOrDefaultBasedRegistry)
+    assert core.limits_registry.settings_name == \
+        'DJPT_KNOWN_LIMITS_DOTTED_PATHS'
+    assert not hasattr(settings, core.limits_registry.settings_name)
+    assert len(core.limits_registry.name2cls) == 2
+    assert len(core.limits_registry.defaults) == 2
+    assert core.limits_registry.name2cls['QueryBatchLimit'] == QueryBatchLimit
+    assert core.limits_registry.name2cls['TimeLimit'] == TimeLimit
