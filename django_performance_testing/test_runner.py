@@ -47,17 +47,19 @@ def get_runner_with_djpt_mixin(*a, **kw):
     class DjptTestRunner(DjptTestRunnerMixin, test_runner_cls.test_runner):
         pass
 
-    class DjptDjangoTestRunner(DjptTestRunnerMixin, test_runner_cls):
+    class DjptDjangoTestRunner(DjptDjangoTestRunnerMixin, test_runner_cls):
+
         def __init__(self, print_report=True, *args, **kwargs):
             super(DjptDjangoTestRunner, self).__init__(*args, **kwargs)
             self.test_runner = DjptTestRunner
             self.test_runner.print_report = print_report
+        test_runner = DjptTestRunner
 
         @classmethod
         def add_arguments(cls, parser):
             super(DjptDjangoTestRunner, cls).add_arguments(parser)
-            parser.add_argument("--no-report", dest="print_report", default=True,
-                                action="store_false")
+            parser.add_argument("--no-report", dest="print_report",
+                                default=True, action="store_false")
 
     def addTest(suite_self, test):
         retval = orig_suite_addTest(suite_self, test)
