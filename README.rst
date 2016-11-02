@@ -114,7 +114,10 @@ Ad-Hoc Limits
 
 While the built-in measurement points are great, sometimes, when profiling
 and trying to improve sections of the code, more granular limits are needed.
-To support that, the limits can be used as context managers, e.g.:
+
+Context managers for python/django code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+All limits can be used as context managers, e.g.:
 
 
 ::
@@ -138,8 +141,62 @@ To support that, the limits can be used as context managers, e.g.:
                 with TimeLimit(total=0.01):   # we need superfast templates
                     return form_invalid(form)
 
+Template tag for templates
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There is a single template tag that can be used after ``{% load djpt_limits %}``,
+namely ``djptlimit``. It takes
+
+* a single string positional argument, the name of the limit - as per
+  ``settings.DJPT_KNOWN_LIMITS_DOTTED_PATHS``, see below
+* keyword arguments that will be passed to the actual limit.
+
+It can be used directly in your tempaltes like
+
+::
+
+    {% load djpt_limits %}
+    {% djptlimit 'TimeLimit' total=3 %}
+    {{ slow_rendering }}
+    {% enddjptlimit %}
+
+When debugging more complext template hierarchies, where e.g.: the slow part
+might not even be our own template, then
+```{{ block.super }}`` <https://docs.djangoproject.com/en/1.10/ref/templates/language/>`_
+could be helpful
+
+::
+
+    {% extends "base.html" %}
+    {% block title %}
+    {% djptlimit 'QueryBatchLimit' read=3 %}
+    {{ block.super }}
+    {% enddjptlimit %}
+    {% endblock %}
+
+``settings.DJPT_KNOWN_LIMITS_DOTTED_PATHS``
+...........................................
+
+This is an array of full class paths, similar to how
+```settings.MIDDLEWARE`` <https://docs.djangoproject.com/en/1.10/topics/http/middleware/#activating-middleware>`
+are defined, e.g.: ``['django_performance_testing.timing.TimeLimit']``.
+
+The name of the limit is the classname part of the class.
+
+Unless you have written a custom limit, this setting doesn't need to be set explicitly,
+as the app has defaults that include all limits.
+
 Release Notes
 =============
+
+* 0.3.0
+
+  * introduced ``django_performance_testing.core.limits_registry``. This keeps
+    track of all limits, and enforces that across the django project all limits
+    have unique names. This also warranted the introduction of
+    ``settings.DJPT_KNOWN_LIMITS_DOTTED_PATHS``.
+  * introduced ``djptlimit`` template tag to be used for ad-hoc template
+    debugging
 
 * 0.2.0
 
