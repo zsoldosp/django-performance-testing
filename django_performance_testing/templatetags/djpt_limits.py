@@ -39,9 +39,12 @@ def djpt_limit(parser, token):
 
 class DjptLimitNode(TagHelperNode):
     def __init__(self, nodelist, limit_name, **limit_kwargs):
+        extra_kwargs = {}
+        if django.VERSION[:2] > (1, 8):
+            extra_kwargs['func'] = None
         super(DjptLimitNode, self).__init__(
-            func=None, takes_context=False,
-            args=[limit_name], kwargs=limit_kwargs
+            takes_context=False, args=[limit_name], kwargs=limit_kwargs,
+            **extra_kwargs
         )
         self.nodelist = nodelist
 
