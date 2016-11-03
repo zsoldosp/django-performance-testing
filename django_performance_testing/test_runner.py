@@ -51,7 +51,7 @@ def get_runner_with_djpt_mixin(*a, **kw):
 
         def __init__(self, print_report=True, *args, **kwargs):
             super(DjptDjangoTestRunner, self).__init__(*args, **kwargs)
-            self.test_runner = DjptTestRunner
+            self.test_runner = type(self).test_runner
             self.test_runner.print_report = print_report
         test_runner = DjptTestRunner
 
