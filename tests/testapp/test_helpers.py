@@ -46,6 +46,38 @@ def run_testcase_with_django_runner(
     )
 
 
+class RunnerFixture(object):
+
+    def __init__(self, testcase_cls, nr_of_tests, all_should_pass=True,
+                 print_bad=True, **options):
+        self.nr_of_tests = nr_of_tests
+        self.all_should_pass = all_should_pass
+        self.print_bad = print_bad
+
+        django_runner_cls = get_runner(settings)
+        django_runner = django_runner_cls(**options)
+        self.suite = django_runner.test_suite()
+        tests = django_runner.test_loader.loadTestsFromTestCase(testcase_cls)
+        self.suite.addTests(tests)
+        self.test_runner = django_runner.test_runner(
+            resultclass=django_runner.get_resultclass(),
+            stream=six.StringIO()
+        )
+
+    def run(self):
+        result = self.test_runner.run(self.suite)
+        assert result.testsRun == self.nr_of_tests
+        unexpected = result.errors + result.failures
+        if unexpected:
+            if self.print_bad:
+                for (test, msg) in unexpected:
+                    print('{}\n\n{}\n'.format(test, msg))
+            assert not self.all_should_pass
+        else:
+            assert self.all_should_pass
+        return result
+
+
 class capture_result_collected(object):
 
     def __enter__(self):
