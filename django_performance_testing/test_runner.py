@@ -59,7 +59,8 @@ def get_runner_with_djpt_mixin(*a, **kw):
         def add_arguments(cls, parser):
             super(DjptDjangoTestRunner, cls).add_arguments(parser)
             parser.add_argument("--no-report", dest="print_report",
-                                default=True, action="store_false")
+                                default=True, action="store_false",
+                                help="Suppress output of report at end.")
 
     def addTest(suite_self, test):
         retval = orig_suite_addTest(suite_self, test)
