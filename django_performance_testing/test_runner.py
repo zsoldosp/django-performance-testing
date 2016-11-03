@@ -53,7 +53,6 @@ def get_runner_with_djpt_mixin(*a, **kw):
             super(DjptDjangoTestRunner, self).__init__(*args, **kwargs)
             self.test_runner = type(self).test_runner
             self.test_runner.print_report = print_report
-        test_runner = DjptTestRunner
 
         @classmethod
         def add_arguments(cls, parser):
