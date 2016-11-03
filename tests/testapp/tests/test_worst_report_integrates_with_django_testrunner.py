@@ -44,7 +44,8 @@ def make_runner(db):
             list(Group.objects.all())
 
     def make_runner_with_options(options):
-        return RunnerFixture(SampleTestCase, nr_of_tests=3, options=options)
+        return RunnerFixture(SampleTestCase, nr_of_tests=3,
+                             runner_options=options)
     return make_runner_with_options
 
 

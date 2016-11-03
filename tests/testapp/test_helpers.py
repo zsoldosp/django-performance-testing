@@ -48,20 +48,24 @@ def run_testcase_with_django_runner(
 
 class RunnerFixture(object):
 
-    def __init__(self, testcase_cls, nr_of_tests, all_should_pass=True,
-                 print_bad=True, **options):
+    def __init__(self, testcase_cls, nr_of_tests, runner_options, all_should_pass=True,
+                 print_bad=True):
         self.nr_of_tests = nr_of_tests
         self.all_should_pass = all_should_pass
         self.print_bad = print_bad
 
-        django_runner_cls = get_runner(settings)
-        django_runner = django_runner_cls(**options)
+        # django_runner_cls = get_runner(settings)
+        from django_performance_testing.test_runner import get_runner_with_djpt_mixin
+        django_runner_cls = get_runner_with_djpt_mixin(settings)
+        django_runner = django_runner_cls(**runner_options)
+        # django_runner = django_runner_cls()
         self.suite = django_runner.test_suite()
         tests = django_runner.test_loader.loadTestsFromTestCase(testcase_cls)
         self.suite.addTests(tests)
         self.test_runner = django_runner.test_runner(
             resultclass=django_runner.get_resultclass(),
             stream=six.StringIO()
+            # stream=six.StringIO() , **runner_options
         )
 
     def run(self):
