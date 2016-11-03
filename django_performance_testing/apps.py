@@ -6,6 +6,10 @@ class DjangoPerformanceTestingAppConfig(AppConfig):
     name = 'django_performance_testing'
 
     def ready(self):
+        from django_performance_testing.registry import \
+            SettingsOrDefaultBasedRegistry
+        from django_performance_testing import core
+        core.limits_registry = SettingsOrDefaultBasedRegistry()
         from .test_client import integrate_into_test_client
         integrate_into_test_client()
         from .test_runner import integrate_into_django_test_runner
