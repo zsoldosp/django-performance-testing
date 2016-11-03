@@ -15,7 +15,7 @@ class WithId(FakeSender):
         return super(WithId, cls).__new__(cls, id_, 'type name')
 
 
-class RunnerFixture(object):
+class RunnerTestCasePackage(object):
 
     def __init__(self, testcase_cls, nr_of_tests, runner_options=None,
                  all_should_pass=True, print_bad=True):
