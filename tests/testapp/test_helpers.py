@@ -15,57 +15,23 @@ class WithId(FakeSender):
         return super(WithId, cls).__new__(cls, id_, 'type name')
 
 
-def run_testcase_with_django_runner(
-        testcase_cls, nr_of_tests, all_should_pass=True, print_bad=True):
-    django_runner_cls = get_runner(settings)
-    django_runner = django_runner_cls()
-    suite = django_runner.test_suite()
-    tests = django_runner.test_loader.loadTestsFromTestCase(testcase_cls)
-    suite.addTests(tests)
-    test_runner = django_runner.test_runner(
-        resultclass=django_runner.get_resultclass(),
-        stream=six.StringIO()
-    )
-    result = test_runner.run(suite)
-    assert result.testsRun == nr_of_tests
-    unexpected = result.errors + result.failures
-    if unexpected:
-        if print_bad:
-            for (test, msg) in unexpected:
-                print('{}\n\n{}\n'.format(test, msg))
-        assert not all_should_pass
-    else:
-        assert all_should_pass
-
-    return dict(
-        django_runner=django_runner,
-        suite=suite,
-        test_runner=test_runner,
-        result=result,
-        out=result.stream.getvalue()
-    )
-
-
 class RunnerFixture(object):
 
-    def __init__(self, testcase_cls, nr_of_tests, runner_options, all_should_pass=True,
-                 print_bad=True):
+    def __init__(self, testcase_cls, nr_of_tests, runner_options=None,
+                 all_should_pass=True, print_bad=True):
+        runner_options = runner_options or {}
         self.nr_of_tests = nr_of_tests
         self.all_should_pass = all_should_pass
         self.print_bad = print_bad
 
-        # django_runner_cls = get_runner(settings)
-        from django_performance_testing.test_runner import get_runner_with_djpt_mixin
-        django_runner_cls = get_runner_with_djpt_mixin(settings)
+        django_runner_cls = get_runner(settings)
         django_runner = django_runner_cls(**runner_options)
-        # django_runner = django_runner_cls()
         self.suite = django_runner.test_suite()
         tests = django_runner.test_loader.loadTestsFromTestCase(testcase_cls)
         self.suite.addTests(tests)
         self.test_runner = django_runner.test_runner(
             resultclass=django_runner.get_resultclass(),
             stream=six.StringIO()
-            # stream=six.StringIO() , **runner_options
         )
 
     def run(self):
@@ -79,7 +45,7 @@ class RunnerFixture(object):
             assert not self.all_should_pass
         else:
             assert self.all_should_pass
-        return result
+        return result, result.stream.getvalue()
 
 
 class capture_result_collected(object):
