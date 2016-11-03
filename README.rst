@@ -35,11 +35,20 @@ Setup
          'django_performance_testing',
          ...
       ]
+
+Usage
+=====
+
 * set your limits (see below for detail)
 * and run your test ``manage.py test <your app>``
 
 For any limit violations, there will be a test failure, and at the end, a
 `Worst Items Report` will be printed.
+
+Command line arguments
+----------------------
+
+* --no-report: Suppress output of report at end.
 
 Supported Limits
 ================
@@ -188,6 +197,10 @@ as the app has defaults that include all limits.
 
 Release Notes
 =============
+
+* 0.4.0
+
+  * add --no-report argument to disable output of performance report on shell
 
 * 0.3.0
 

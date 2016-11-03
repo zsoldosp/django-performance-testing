@@ -22,7 +22,8 @@ class DjptTestRunnerMixin(object):
         """
         self.djpt_worst_report = WorstReport()
         retval = super(DjptTestRunnerMixin, self).run(*a, **kw)
-        self.djpt_worst_report.render(self.stream)
+        if self.print_report:
+            self.djpt_worst_report.render(self.stream)
         return retval
 
 
@@ -48,7 +49,17 @@ def get_runner_with_djpt_mixin(*a, **kw):
 
     class DjptDjangoTestRunner(DjptDjangoTestRunnerMixin, test_runner_cls):
 
-        test_runner = DjptTestRunner
+        def __init__(self, print_report=True, *args, **kwargs):
+            super(DjptDjangoTestRunner, self).__init__(*args, **kwargs)
+            self.test_runner = type(self).test_runner
+            self.test_runner.print_report = print_report
+
+        @classmethod
+        def add_arguments(cls, parser):
+            super(DjptDjangoTestRunner, cls).add_arguments(parser)
+            parser.add_argument("--no-report", dest="print_report",
+                                default=True, action="store_false",
+                                help="Suppress output of report at end.")
 
     def addTest(suite_self, test):
         retval = orig_suite_addTest(suite_self, test)
