@@ -17,8 +17,8 @@ class WithId(FakeSender):
 
 class RunnerTestCasePackage(object):
 
-    def __init__(self, testcase_cls, nr_of_tests, runner_options=None,
-                 all_should_pass=True, print_bad=True):
+    def __init__(self, testcase_cls, nr_of_tests, all_should_pass=True,
+                 print_bad=True, runner_options=None):
         runner_options = runner_options or {}
         self.nr_of_tests = nr_of_tests
         self.all_should_pass = all_should_pass
@@ -45,7 +45,20 @@ class RunnerTestCasePackage(object):
             assert not self.all_should_pass
         else:
             assert self.all_should_pass
-        return result, result.stream.getvalue()
+        return result
+
+
+def run_testcase_with_django_runner(testcase_cls, nr_of_tests,
+                                    all_should_pass=True, print_bad=True,
+                                    runner_options=None):
+    package = RunnerTestCasePackage(testcase_cls, nr_of_tests, all_should_pass,
+                                    print_bad, runner_options)
+    result = package.run()
+    return {
+        "result": result,
+        "output": result.stream.getvalue(),
+        "runner": package.test_runner
+    }
 
 
 class capture_result_collected(object):

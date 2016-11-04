@@ -49,10 +49,10 @@ def get_runner_with_djpt_mixin(*a, **kw):
 
     class DjptDjangoTestRunner(DjptDjangoTestRunnerMixin, test_runner_cls):
 
-        def __init__(self, print_report=True, *args, **kwargs):
-            super(DjptDjangoTestRunner, self).__init__(*args, **kwargs)
+        def __init__(self, *args, **kwargs):
             self.test_runner = type(self).test_runner
-            self.test_runner.print_report = print_report
+            self.test_runner.print_report = kwargs.pop("print_report", True)
+            super(DjptDjangoTestRunner, self).__init__(*args, **kwargs)
         test_runner = DjptTestRunner
 
         @classmethod

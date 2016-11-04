@@ -6,7 +6,7 @@ from django_performance_testing import test_runner as djpt_test_runner_module
 from freezegun import freeze_time
 import pytest
 from testapp.test_helpers import (override_current_context,
-                                  RunnerTestCasePackage)
+                                  run_testcase_with_django_runner)
 import unittest
 
 
@@ -76,7 +76,7 @@ def test_runner_sets_executing_test_method_as_context():
             assert [str(self)] == tests
 
     with override_current_context() as ctx:
-        RunnerTestCasePackage(SomeTestCase, nr_of_tests=1).run()
+        run_testcase_with_django_runner(SomeTestCase, nr_of_tests=1)
 
 
 def test_number_of_queries_per_test_method_can_be_limited(db, settings):
@@ -93,10 +93,9 @@ def test_number_of_queries_per_test_method_can_be_limited(db, settings):
         }
     }
 
-    test_package = RunnerTestCasePackage(ATestCase, nr_of_tests=1,
-                                         all_should_pass=False)
-    result, output = test_package.run()
-    assert 'LimitViolationError: ' in output
+    test_run = run_testcase_with_django_runner(ATestCase, nr_of_tests=1,
+                                               all_should_pass=False)
+    assert 'LimitViolationError: ' in test_run["output"]
 
 
 def test_elapsed_time_per_test_method_can_be_limited(settings):
@@ -112,7 +111,7 @@ def test_elapsed_time_per_test_method_can_be_limited(settings):
         class ATestCase(unittest.TestCase):
             def test_foo(self):
                 frozen_time.tick(timedelta(seconds=5))
-        test_package = RunnerTestCasePackage(ATestCase, nr_of_tests=1,
-                                             all_should_pass=False)
-        _result, output = test_package.run()
-    assert 'LimitViolationError: ' in output
+        testrun = run_testcase_with_django_runner(
+            ATestCase, nr_of_tests=1, all_should_pass=False)
+
+    assert 'LimitViolationError: ' in testrun["output"]
