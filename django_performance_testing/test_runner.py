@@ -58,7 +58,7 @@ def get_runner_with_djpt_mixin(*a, **kw):
         @classmethod
         def add_arguments(cls, parser):
             super(DjptDjangoTestRunner, cls).add_arguments(parser)
-            parser.add_argument("--no-report", dest="print_report",
+            parser.add_argument("--djpt-no-report", dest="print_report",
                                 default=True, action="store_false",
                                 help="Suppress output of report at end.")
 

@@ -43,12 +43,16 @@ Usage
 * and run your test ``manage.py test <your app>``
 
 For any limit violations, there will be a test failure, and at the end, a
-`Worst Items Report` will be printed.
+`Worst Items Report` will be printed (unless supressed by the command line).
 
 Command line arguments
 ----------------------
 
-* --no-report: Suppress output of report at end.
+In addition to the regular testrunner command line options, the following
+extra ones are added
+
+* ``--djpt-no-report``: Suppress output of the `Worst Items Report` at end
+  (which is printed by default otherwise).
 
 Supported Limits
 ================
@@ -200,7 +204,7 @@ Release Notes
 
 * 0.4.0
 
-  * add --no-report argument to disable output of performance report on shell
+  * add ``--djpt-no-report`` argument to disable output of performance report on shell
 
 * 0.3.0
 
