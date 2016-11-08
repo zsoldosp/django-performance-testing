@@ -43,12 +43,16 @@ Usage
 * and run your test ``manage.py test <your app>``
 
 For any limit violations, there will be a test failure, and at the end, a
-`Worst Items Report` will be printed.
+`Worst Items Report` will be printed (unless supressed by the command line).
 
 Command line arguments
 ----------------------
 
-* --no-report: Suppress output of report at end.
+In addition to the regular testrunner command line options, the following
+extra ones are added
+
+* ``--djpt-no-report``: Suppress output of the `Worst Items Report` at end
+  (which is printed by default otherwise).
 
 Supported Limits
 ================
@@ -171,7 +175,7 @@ It can be used directly in your tempaltes like
 
 When debugging more complext template hierarchies, where e.g.: the slow part
 might not even be our own template, then
-```{{ block.super }}`` <https://docs.djangoproject.com/en/1.10/ref/templates/language/>`_
+`{{ block.super }} <https://docs.djangoproject.com/en/1.10/ref/templates/language/>`_
 could be helpful
 
 ::
@@ -187,7 +191,7 @@ could be helpful
 ...........................................
 
 This is an array of full class paths, similar to how
-```settings.MIDDLEWARE`` <https://docs.djangoproject.com/en/1.10/topics/http/middleware/#activating-middleware>`
+`settings.MIDDLEWARE <https://docs.djangoproject.com/en/1.10/topics/http/middleware/#activating-middleware>`_
 are defined, e.g.: ``['django_performance_testing.timing.TimeLimit']``.
 
 The name of the limit is the classname part of the class.
@@ -200,7 +204,7 @@ Release Notes
 
 * 0.4.0
 
-  * add --no-report argument to disable output of performance report on shell
+  * add ``--djpt-no-report`` argument to disable output of performance report on shell
 
 * 0.3.0
 
