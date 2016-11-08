@@ -5,8 +5,8 @@ from django.utils import six
 from django_performance_testing import test_runner as djpt_test_runner_module
 from freezegun import freeze_time
 import pytest
-from testapp.test_helpers import \
-    run_testcase_with_django_runner, override_current_context
+from testapp.test_helpers import (override_current_context,
+                                  run_testcase_with_django_runner)
 import unittest
 
 
@@ -93,10 +93,9 @@ def test_number_of_queries_per_test_method_can_be_limited(db, settings):
         }
     }
 
-    test_run = run_testcase_with_django_runner(
-        ATestCase, nr_of_tests=1, all_should_pass=False)
-    out = test_run['out']
-    assert 'LimitViolationError: ' in out
+    test_run = run_testcase_with_django_runner(ATestCase, nr_of_tests=1,
+                                               all_should_pass=False)
+    assert 'LimitViolationError: ' in test_run["output"]
 
 
 def test_elapsed_time_per_test_method_can_be_limited(settings):
@@ -112,7 +111,7 @@ def test_elapsed_time_per_test_method_can_be_limited(settings):
         class ATestCase(unittest.TestCase):
             def test_foo(self):
                 frozen_time.tick(timedelta(seconds=5))
-        test_run = run_testcase_with_django_runner(
+        testrun = run_testcase_with_django_runner(
             ATestCase, nr_of_tests=1, all_should_pass=False)
-    out = test_run['out']
-    assert 'LimitViolationError: ' in out
+
+    assert 'LimitViolationError: ' in testrun["output"]
