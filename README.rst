@@ -175,7 +175,7 @@ It can be used directly in your tempaltes like
 
 When debugging more complext template hierarchies, where e.g.: the slow part
 might not even be our own template, then
-```{{ block.super }}`` <https://docs.djangoproject.com/en/1.10/ref/templates/language/>`_
+`{{ block.super }} <https://docs.djangoproject.com/en/1.10/ref/templates/language/>`_
 could be helpful
 
 ::
@@ -191,7 +191,7 @@ could be helpful
 ...........................................
 
 This is an array of full class paths, similar to how
-```settings.MIDDLEWARE`` <https://docs.djangoproject.com/en/1.10/topics/http/middleware/#activating-middleware>`
+`settings.MIDDLEWARE <https://docs.djangoproject.com/en/1.10/topics/http/middleware/#activating-middleware>`_
 are defined, e.g.: ``['django_performance_testing.timing.TimeLimit']``.
 
 The name of the limit is the classname part of the class.
