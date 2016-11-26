@@ -24,6 +24,7 @@ def get_args_kwargs(parser, token):
         varargs, varkw, defaults, takes_context, function_name)
     return args, kwargs
 
+
 limit_tag_name = 'djptlimit'
 
 

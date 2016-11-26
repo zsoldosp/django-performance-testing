@@ -41,8 +41,10 @@ def test_report_is_printed_after_test_is_run(packaged_runner):
         test_run["runner"].djpt_worst_report.rendered())
 
 
-def test_no_report_is_printed_with_print_report_set_to_false(packaged_runner):
-    test_run = packaged_runner({"print_report": False})
+def test_no_report_is_printed_with_print_report_set_to_false(
+        packaged_runner, settings):
+    settings.DJPT_PRINT_WORST_REPORT = False
+    test_run = packaged_runner()
     assert "Worst Performing Items" not in test_run["output"]
 
 

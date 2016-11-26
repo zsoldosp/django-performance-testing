@@ -52,6 +52,7 @@ def foo():
     class C(Base):
         pass
 
+
 foo()
 for name, cls in Base.registry.items():
     print([name, cls()])

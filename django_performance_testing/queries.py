@@ -65,6 +65,7 @@ class QueryCollector(BaseCollector):
     def store_queries(self):
         self.queries += connection.queries[self.nr_of_queries_when_entering:]
 
+
 _query_token_to_classification = {
     'SELECT': 'read',
     'INSERT': 'write',

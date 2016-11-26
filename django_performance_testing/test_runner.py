@@ -1,4 +1,5 @@
 # TODO: app.ready happens before the command is imported - how to test?
+from django.conf import settings
 from django.test import utils
 from django_performance_testing.reports import WorstReport
 from django_performance_testing.utils import BeforeAfterWrapper
@@ -22,7 +23,7 @@ class DjptTestRunnerMixin(object):
         """
         self.djpt_worst_report = WorstReport()
         retval = super(DjptTestRunnerMixin, self).run(*a, **kw)
-        if self.print_report:
+        if getattr(settings, 'DJPT_PRINT_WORST_REPORT', True):
             self.djpt_worst_report.render(self.stream)
         return retval
 
@@ -49,18 +50,7 @@ def get_runner_with_djpt_mixin(*a, **kw):
 
     class DjptDjangoTestRunner(DjptDjangoTestRunnerMixin, test_runner_cls):
 
-        def __init__(self, *args, **kwargs):
-            self.test_runner = type(self).test_runner
-            self.test_runner.print_report = kwargs.pop("print_report", True)
-            super(DjptDjangoTestRunner, self).__init__(*args, **kwargs)
         test_runner = DjptTestRunner
-
-        @classmethod
-        def add_arguments(cls, parser):
-            super(DjptDjangoTestRunner, cls).add_arguments(parser)
-            parser.add_argument("--djpt-no-report", dest="print_report",
-                                default=True, action="store_false",
-                                help="Suppress output of report at end.")
 
     def addTest(suite_self, test):
         retval = orig_suite_addTest(suite_self, test)

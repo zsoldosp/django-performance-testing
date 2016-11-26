@@ -43,16 +43,16 @@ Usage
 * and run your test ``manage.py test <your app>``
 
 For any limit violations, there will be a test failure, and at the end, a
-`Worst Items Report` will be printed (unless supressed by the command line).
+`Worst Items Report` will be printed (unless supressed by
+``settins.DJPT_PRINT_WORST_REPORT = False``). If it is desired to control
+this behavior from the command line, the recommendation is to define it
+through environmnet variables (a'la
+`12 factor <https://12factor.net/config>`_), i.e.:
 
-Command line arguments
-----------------------
+ * in ``settings.py``, ``DJPT_PRINT_WORST_REPORT = bool(os.environ.get('DJPT_PRINT_WORST_REPORT',  '1'))``
+ * from the command line, run the tests like
+   ``DJPT_PRINT_WORST_REPORT=0 manage.py test <your app>``
 
-In addition to the regular testrunner command line options, the following
-extra ones are added
-
-* ``--djpt-no-report``: Suppress output of the `Worst Items Report` at end
-  (which is printed by default otherwise).
 
 Supported Limits
 ================
@@ -201,6 +201,12 @@ as the app has defaults that include all limits.
 
 Release Notes
 =============
+
+* 0.5.0
+
+  * backwards incompatible - remove ``--djpt-no-report`` and use
+    ``settings.DJPT_PRINT_WORST_REPORT`` instead to suppress the printing of the report
+    (to address incompatibilities with third party testrunner extensions)
 
 * 0.4.0
 
