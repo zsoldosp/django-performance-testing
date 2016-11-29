@@ -49,7 +49,7 @@ this behavior from the command line, the recommendation is to define it
 through environmnet variables (a'la
 `12 factor <https://12factor.net/config>`_), i.e.:
 
- * in ``settings.py``, ``DJPT_PRINT_WORST_REPORT = bool(os.environ.get('DJPT_PRINT_WORST_REPORT',  '1'))``
+ * in ``settings.py``, ``DJPT_PRINT_WORST_REPORT = bool(int(os.environ.get('DJPT_PRINT_WORST_REPORT',  '1')))``
  * from the command line, run the tests like
    ``DJPT_PRINT_WORST_REPORT=0 manage.py test <your app>``
 
