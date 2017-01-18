@@ -1,7 +1,7 @@
 from django.contrib.auth.models import Group
 from django_performance_testing.reports import WorstReport
 from django_performance_testing.signals import results_collected
-from testapp.test_helpers import WithId, run_testcase_with_django_runner
+from testapp.test_helpers import WithId, run_testcases_with_django_runner
 import pytest
 import unittest
 
@@ -25,8 +25,8 @@ def packaged_runner(db):
 
     def get_packaged_runner_with_options(options=None):
         options = options or {}
-        return run_testcase_with_django_runner(SampleTestCase, nr_of_tests=3,
-                                               runner_options=options)
+        return run_testcases_with_django_runner(SampleTestCase, nr_of_tests=3,
+                                                runner_options=options)
     return get_packaged_runner_with_options
 
 
