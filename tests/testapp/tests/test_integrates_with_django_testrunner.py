@@ -84,14 +84,15 @@ def perform_db_query():
 
 
 @pytest.mark.parametrize(
-    'test_methods_added,limit_name,method_name,code_that_fails', [
-        (1, 'test method', 'test_foo', perform_db_query),
+    'test_methods_added,limit_name,method_name,code_that_fails,limit_type', [
+        (1, 'test method', 'test_foo', perform_db_query, 'queries'),
     ], ids=['test method'])
 def test_number_of_queries_per_test_method_can_be_limited(db, settings,
                                                           test_methods_added,
                                                           limit_name,
                                                           method_name,
-                                                          code_that_fails):
+                                                          code_that_fails,
+                                                          limit_type):
 
     def do_stuff(self):
         code_that_fails()
@@ -105,7 +106,7 @@ def test_number_of_queries_per_test_method_can_be_limited(db, settings,
 
     settings.PERFORMANCE_LIMITS = {
         limit_name: {
-            'queries': {
+            limit_type: {
                 'total': 0
             }
         }
