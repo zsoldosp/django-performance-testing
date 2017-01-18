@@ -79,16 +79,22 @@ def test_runner_sets_executing_test_method_as_context():
         run_testcases_with_django_runner(SomeTestCase, nr_of_tests=1)
 
 
-@pytest.mark.parametrize('test_methods_added,limit_name,method_name', [
-    (1, 'test method', 'test_foo'),
-], ids=['test method'])
+def perform_db_query():
+    assert len(Group.objects.all()) == 0
+
+
+@pytest.mark.parametrize(
+    'test_methods_added,limit_name,method_name,code_that_fails', [
+        (1, 'test method', 'test_foo', perform_db_query),
+    ], ids=['test method'])
 def test_number_of_queries_per_test_method_can_be_limited(db, settings,
                                                           test_methods_added,
                                                           limit_name,
-                                                          method_name):
+                                                          method_name,
+                                                          code_that_fails):
 
     def do_stuff(self):
-        assert len(Group.objects.all()) == 0
+        code_that_fails()
 
     class ATestCase(unittest.TestCase):
 
