@@ -28,11 +28,6 @@ class DjptTestRunnerMixin(object):
         return retval
 
 
-class DjptWrappedTestSuiteAddTest(object):
-    def __init__(self, orig_suite_add_test):
-        self.orig_suite_add_test = orig_suite_add_test
-
-
 class __NeededToFindInstanceMethodType(object):
 
     def some_method(self):
