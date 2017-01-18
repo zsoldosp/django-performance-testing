@@ -38,7 +38,6 @@ class RunnerTestCasePackage(object):
 
     def run(self):
         result = self.test_runner.run(self.suite)
-        assert result.testsRun == self.nr_of_tests
         unexpected = result.errors + result.failures
         if unexpected:
             if self.print_bad:
@@ -47,6 +46,7 @@ class RunnerTestCasePackage(object):
             assert not self.all_should_pass
         else:
             assert self.all_should_pass
+        assert result.testsRun == self.nr_of_tests
         return result
 
 
