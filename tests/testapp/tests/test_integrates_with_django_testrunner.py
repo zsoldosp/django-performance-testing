@@ -79,22 +79,34 @@ def test_runner_sets_executing_test_method_as_context():
         run_testcases_with_django_runner(SomeTestCase, nr_of_tests=1)
 
 
-def test_number_of_queries_per_test_method_can_be_limited(db, settings):
+@pytest.mark.parametrize('test_methods_added,limit_name,method_name', [
+    (1, 'test method', 'test_foo'),
+], ids=['test method'])
+def test_number_of_queries_per_test_method_can_be_limited(db, settings,
+                                                          test_methods_added,
+                                                          limit_name,
+                                                          method_name):
+
+    def do_stuff(self):
+        assert len(Group.objects.all()) == 0
 
     class ATestCase(unittest.TestCase):
-        def test_foo(self):
-            assert len(Group.objects.all()) == 0
+
+        def test_default(self):
+            pass
+
+    setattr(ATestCase, method_name, do_stuff)
 
     settings.PERFORMANCE_LIMITS = {
-        'test method': {
+        limit_name: {
             'queries': {
                 'total': 0
             }
         }
     }
 
-    test_run = run_testcases_with_django_runner(ATestCase, nr_of_tests=1,
-                                                all_should_pass=False)
+    test_run = run_testcases_with_django_runner(
+        ATestCase, nr_of_tests=test_methods_added + 1, all_should_pass=False)
     assert 'LimitViolationError: ' in test_run["output"]
 
 
