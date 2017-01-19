@@ -113,10 +113,10 @@ class FailsTimeLimit(object):
     'adds_failing_test,limit_name,method_name,limit_failer_cls', [
         (True, 'test method', 'test_foo', FailsDbLimit),
         (True, 'test method', 'test_foo', FailsTimeLimit),
-        (False, 'test setup', 'setUp', FailsDbLimit),
-        (False, 'test setup', 'setUp', FailsTimeLimit),
-        (False, 'test teardown', 'tearDown', FailsDbLimit),
-        (False, 'test teardown', 'tearDown', FailsTimeLimit),
+        (False, 'test setUp', 'setUp', FailsDbLimit),
+        (False, 'test setUp', 'setUp', FailsTimeLimit),
+        (False, 'test tearDown', 'tearDown', FailsDbLimit),
+        (False, 'test tearDown', 'tearDown', FailsTimeLimit),
     ])
 def test_limits_can_be_set_on_testcase_methods(db, settings, limit_name,
                                                adds_failing_test, method_name,

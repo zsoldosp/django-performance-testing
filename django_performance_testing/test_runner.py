@@ -72,14 +72,14 @@ def get_runner_with_djpt_mixin(*a, **kw):
             wrap_instance_method(
                 instance=test,
                 method_name='setUp',
-                collector_id='test setup',
+                collector_id='test setUp',
                 ctx_key='setup method',
                 ctx_value='setUp ({})'.format(
                     unittest.util.strclass(test.__class__)))
             wrap_instance_method(
                 instance=test,
                 method_name='tearDown',
-                collector_id='test teardown',
+                collector_id='test tearDown',
                 ctx_key='teardown method',
                 ctx_value='tearDown ({})'.format(
                     unittest.util.strclass(test.__class__)))
@@ -98,7 +98,7 @@ def integrate_into_django_test_runner():
     utils.get_runner = get_runner_with_djpt_mixin
     DjptTestRunnerMixin.collectors = {}
     DjptTestRunnerMixin.limits = {}
-    for collector_id in ['test method', 'test setup', 'test teardown']:
+    for collector_id in ['test method', 'test setUp', 'test tearDown']:
         collectors = DjptTestRunnerMixin.collectors[collector_id] = []
         limits = DjptTestRunnerMixin.limits[collector_id] = []
         for limit_cls in djpt_core.limits_registry.name2cls.values():

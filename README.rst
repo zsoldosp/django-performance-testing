@@ -93,9 +93,9 @@ Following are the keys that are currently supported for
 
   * ``test method`` - the actual various ``unittest`` test methods that
     you write for your app
-  * ``test setup`` - the ``TestCase.setUp`` methods you write for your test
+  * ``test setUp`` - the ``TestCase.setUp`` methods you write for your test
     classes
-  * ``test teardown`` - the ``TestCase.tearDown`` methods you write for your
+  * ``test tearDown`` - the ``TestCase.tearDown`` methods you write for your
     test classes
 
 For each of the above keys, there is a ``dict`` that holds the actual limits.
@@ -212,7 +212,7 @@ Release Notes
 
   * django test runner integration now uses ``settings.DJPT_KNOWN_LIMITS_DOTTED_PATHS``
     for the collectors/limits it initializes, thus allowing 3rd party collectors/limits
-  * new predefined limit points: ``test setup``, ``test teardown``
+  * new predefined limit points: ``test setUp``, ``test tearDown``
 
 * 0.5.0
 
