@@ -84,6 +84,12 @@ class FailsDbLimit(object):
     limit_type = 'queries'
     limit_value = 0
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return None
+
     def code_that_fails(self):
         assert len(Group.objects.all()) == 0
 
@@ -97,17 +103,6 @@ def test_number_of_queries_per_test_method_can_be_limited(db, settings,
                                                           method_name,
                                                           limit_failer_cls):
     failer = limit_failer_cls()
-
-    def do_stuff(self):
-        failer.code_that_fails()
-
-    class ATestCase(unittest.TestCase):
-
-        def test_default(self):
-            pass
-
-    setattr(ATestCase, method_name, do_stuff)
-
     settings.PERFORMANCE_LIMITS = {
         failer.limit_name: {
             failer.limit_type: {
@@ -116,8 +111,19 @@ def test_number_of_queries_per_test_method_can_be_limited(db, settings,
         }
     }
 
-    test_run = run_testcases_with_django_runner(
-        ATestCase, nr_of_tests=test_methods_added + 1, all_should_pass=False)
+    with failer:
+        class ATestCase(unittest.TestCase):
+
+            def test_default(self):
+                pass
+
+        def do_stuff(self):
+            failer.code_that_fails()
+
+        setattr(ATestCase, method_name, do_stuff)
+        test_run = run_testcases_with_django_runner(
+            ATestCase, nr_of_tests=test_methods_added + 1,
+            all_should_pass=False)
     assert 'LimitViolationError: ' in test_run["output"]
 
 
