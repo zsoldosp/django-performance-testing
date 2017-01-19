@@ -39,14 +39,15 @@ class RunnerTestCasePackage(object):
     def run(self):
         result = self.test_runner.run(self.suite)
         unexpected = result.errors + result.failures
+        result.output = result.stream.getvalue()
         if unexpected:
             if self.print_bad:
                 for (test, msg) in unexpected:
                     print('{}\n\n{}\n'.format(test, msg))
-            assert not self.all_should_pass
+            assert not self.all_should_pass, result.output
         else:
-            assert self.all_should_pass
-        assert result.testsRun == self.nr_of_tests
+            assert self.all_should_pass, result.output
+        assert result.testsRun == self.nr_of_tests, result.output
         return result
 
 
@@ -61,7 +62,7 @@ def run_testcases_with_django_runner(testcases_to_run, nr_of_tests,
     result = package.run()
     return {
         "result": result,
-        "output": result.stream.getvalue(),
+        "output": result.output,
         "runner": package.test_runner
     }
 
