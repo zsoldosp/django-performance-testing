@@ -79,23 +79,27 @@ def test_runner_sets_executing_test_method_as_context():
         run_testcases_with_django_runner(SomeTestCase, nr_of_tests=1)
 
 
-def perform_db_query():
-    assert len(Group.objects.all()) == 0
+class FailsDbLimit(object):
+    limit_name = 'test method'
+    limit_type = 'queries'
+    limit_value = 0
+
+    def code_that_fails(self):
+        assert len(Group.objects.all()) == 0
 
 
 @pytest.mark.parametrize(
-    'test_methods_added,limit_name,method_name,code_that_fails,limit_type', [
-        (1, 'test method', 'test_foo', perform_db_query, 'queries'),
-    ], ids=['test method'])
+    'test_methods_added,method_name,limit_failer_cls', [
+        (1, 'test_foo', FailsDbLimit),
+    ], ids=['test method-db'])
 def test_number_of_queries_per_test_method_can_be_limited(db, settings,
                                                           test_methods_added,
-                                                          limit_name,
                                                           method_name,
-                                                          code_that_fails,
-                                                          limit_type):
+                                                          limit_failer_cls):
+    failer = limit_failer_cls()
 
     def do_stuff(self):
-        code_that_fails()
+        failer.code_that_fails()
 
     class ATestCase(unittest.TestCase):
 
@@ -105,9 +109,9 @@ def test_number_of_queries_per_test_method_can_be_limited(db, settings,
     setattr(ATestCase, method_name, do_stuff)
 
     settings.PERFORMANCE_LIMITS = {
-        limit_name: {
-            limit_type: {
-                'total': 0
+        failer.limit_name: {
+            failer.limit_type: {
+                'total': failer.limit_value
             }
         }
     }
