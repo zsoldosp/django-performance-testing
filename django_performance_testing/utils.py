@@ -10,6 +10,7 @@ class run_with(object):
         def with_ctx_mngr_wrapper(*a, **kw):
             with self.ctx_manager:
                 return test_fn(*a, **kw)
+        with_ctx_mngr_wrapper.ctx_manager = self.ctx_manager
         return with_ctx_mngr_wrapper
 
 

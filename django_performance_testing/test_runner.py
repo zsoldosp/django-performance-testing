@@ -28,26 +28,20 @@ class DjptTestRunnerMixin(object):
         return retval
 
 
-class __NeededToFindInstanceMethodType(object):
-
-    def some_method(self):
-        pass
-
-
-instancemethod = type(__NeededToFindInstanceMethodType().some_method)
-
-
-def wrap_instance_method(instance, method_name, collector_id, ctx_key):
-    target_method = getattr(instance, method_name)
+def wrap_cls_method(cls, method_name, collector_id, ctx_key):
+    target_method = getattr(cls, method_name)
+    has_been_patched_flag = 'ctx_manager'
+    if hasattr(target_method, has_been_patched_flag):
+        return
     ctx_value = '{} ({})'.format(
-        method_name, unittest.util.strclass(instance.__class__))
-    if isinstance(target_method, instancemethod):
-        for collector in DjptTestRunnerMixin.collectors[collector_id]:
-            BeforeAfterWrapper(
-                instance, method_name, context_manager=collector)
-        ctx = scoped_context(key=ctx_key, value=ctx_value)
+        method_name, unittest.util.strclass(cls))
+    for collector in DjptTestRunnerMixin.collectors[collector_id]:
         BeforeAfterWrapper(
-            instance, method_name, context_manager=ctx)
+            cls, method_name, context_manager=collector)
+    ctx = scoped_context(key=ctx_key, value=ctx_value)
+    BeforeAfterWrapper(
+        cls, method_name, context_manager=ctx)
+    target_method.__dict__[has_been_patched_flag] = True
 
 
 def get_runner_with_djpt_mixin(*a, **kw):
@@ -62,22 +56,23 @@ def get_runner_with_djpt_mixin(*a, **kw):
 
     def addTest(suite_self, test):
         retval = orig_suite_addTest(suite_self, test)
+        test_cls = test.__class__
         is_test = hasattr(test, '_testMethodName')
         if is_test:
-            wrap_instance_method(
-                instance=test,
+            wrap_cls_method(
+                cls=test_cls,
                 method_name=test._testMethodName,
                 collector_id='test method',
                 ctx_key='test name'
             )
-            wrap_instance_method(
-                instance=test,
+            wrap_cls_method(
+                cls=test_cls,
                 method_name='setUp',
                 collector_id='test setUp',
                 ctx_key='setup method',
             )
-            wrap_instance_method(
-                instance=test,
+            wrap_cls_method(
+                cls=test_cls,
                 method_name='tearDown',
                 collector_id='test tearDown',
                 ctx_key='teardown method',
