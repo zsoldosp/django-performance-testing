@@ -36,6 +36,17 @@ class __NeededToFindInstanceMethodType(object):
 instancemethod = type(__NeededToFindInstanceMethodType().some_method)
 
 
+def wrap_instance_method(instance, method_name, ctx_key, ctx_value):
+    target_method = getattr(instance, method_name)
+    if isinstance(target_method, instancemethod):
+        for collector in DjptTestRunnerMixin.collectors:
+            BeforeAfterWrapper(
+                instance, method_name, context_manager=collector)
+        ctx = scoped_context(key=ctx_key, value=ctx_value)
+        BeforeAfterWrapper(
+            instance, method_name, context_manager=ctx)
+
+
 def get_runner_with_djpt_mixin(*a, **kw):
     test_runner_cls = orig_get_runner(*a, **kw)
 
@@ -50,14 +61,11 @@ def get_runner_with_djpt_mixin(*a, **kw):
         retval = orig_suite_addTest(suite_self, test)
         is_test = hasattr(test, '_testMethodName')
         if is_test:
-            test_method = getattr(test, test._testMethodName)
-            if isinstance(test_method, instancemethod):  # not patched yet
-                for collector in DjptTestRunnerMixin.collectors:
-                    BeforeAfterWrapper(
-                        test, test._testMethodName, context_manager=collector)
-                test_ctx = scoped_context(key='test name', value=str(test))
-                BeforeAfterWrapper(
-                    test, test._testMethodName, context_manager=test_ctx)
+            wrap_instance_method(
+                instance=test,
+                method_name=test._testMethodName,
+                ctx_key='test name',
+                ctx_value=str(test))
         return retval
 
     def fn_to_id(fn):
