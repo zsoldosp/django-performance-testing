@@ -202,6 +202,11 @@ as the app has defaults that include all limits.
 Release Notes
 =============
 
+* 0.6.0
+
+  * django test runner integration now uses ``settings.DJPT_KNOWN_LIMITS_DOTTED_PATHS``
+    for the collectors/limits it initializes, thus allowing 3rd party collectors/limits
+
 * 0.5.0
 
   * backwards incompatible - remove ``--djpt-no-report`` and use
