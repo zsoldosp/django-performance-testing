@@ -36,10 +36,11 @@ class __NeededToFindInstanceMethodType(object):
 instancemethod = type(__NeededToFindInstanceMethodType().some_method)
 
 
-def wrap_instance_method(instance, method_name, ctx_key, ctx_value):
+def wrap_instance_method(instance, method_name, collector_id,
+                         ctx_key, ctx_value):
     target_method = getattr(instance, method_name)
     if isinstance(target_method, instancemethod):
-        for collector in DjptTestRunnerMixin.collectors:
+        for collector in DjptTestRunnerMixin.collectors[collector_id]:
             BeforeAfterWrapper(
                 instance, method_name, context_manager=collector)
         ctx = scoped_context(key=ctx_key, value=ctx_value)
@@ -64,6 +65,7 @@ def get_runner_with_djpt_mixin(*a, **kw):
             wrap_instance_method(
                 instance=test,
                 method_name=test._testMethodName,
+                collector_id='test method',
                 ctx_key='test name',
                 ctx_value=str(test))
         return retval
@@ -79,11 +81,13 @@ def get_runner_with_djpt_mixin(*a, **kw):
 
 def integrate_into_django_test_runner():
     utils.get_runner = get_runner_with_djpt_mixin
-    collector_id = 'test method'
-    DjptTestRunnerMixin.collectors = []
-    DjptTestRunnerMixin.limits = []
-    for limit_cls in djpt_core.limits_registry.name2cls.values():
-        collector = limit_cls.collector_cls(id_=collector_id)
-        DjptTestRunnerMixin.collectors.append(collector)
-        limit = limit_cls(collector_id=collector_id, settings_based=True)
-        DjptTestRunnerMixin.limits.append(limit)
+    DjptTestRunnerMixin.collectors = {}
+    DjptTestRunnerMixin.limits = {}
+    for collector_id in ['test method']:
+        collectors = DjptTestRunnerMixin.collectors[collector_id] = []
+        limits = DjptTestRunnerMixin.limits[collector_id] = []
+        for limit_cls in djpt_core.limits_registry.name2cls.values():
+            collector = limit_cls.collector_cls(id_=collector_id)
+            collectors.append(collector)
+            limit = limit_cls(collector_id=collector_id, settings_based=True)
+            limits.append(limit)
