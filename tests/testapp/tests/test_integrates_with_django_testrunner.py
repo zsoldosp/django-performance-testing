@@ -121,20 +121,51 @@ def test_number_of_queries_per_test_method_can_be_limited(db, settings,
     assert 'LimitViolationError: ' in test_run["output"]
 
 
-def test_elapsed_time_per_test_method_can_be_limited(settings):
+class FailsTimeLimit(object):
+    limit_name = 'test method'
+    limit_type = 'time'
+    limit_value = 4
+
+    def __enter__(self):
+        self.freeze_ctx_mgr = freeze_time('2016-09-29 18:18:01')
+        self.frozen_time = self.freeze_ctx_mgr.__enter__()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return self.freeze_ctx_mgr.__exit__(exc_type, exc_val, exc_tb)
+
+    def code_that_fails(self):
+        self.frozen_time.tick(timedelta(seconds=5))
+
+
+@pytest.mark.parametrize(
+    'test_methods_added,method_name,limit_failer_cls', [
+        (1, 'test_foo', FailsTimeLimit),
+    ], ids=['test method-time'])
+def test_elapsed_time_per_test_method_can_be_limited(settings,
+                                                     test_methods_added,
+                                                     method_name,
+                                                     limit_failer_cls):
+    failer = limit_failer_cls()
     settings.PERFORMANCE_LIMITS = {
-        'test method': {
-            'time': {
-                'total': 4
+        failer.limit_name: {
+            failer.limit_type: {
+                'total': failer.limit_value
             }
         }
     }
 
-    with freeze_time('2016-09-29 18:18:01') as frozen_time:
+    with failer:
         class ATestCase(unittest.TestCase):
-            def test_foo(self):
-                frozen_time.tick(timedelta(seconds=5))
+            def test_default(self):
+                pass
+
+        def do_stuff(self):
+            failer.code_that_fails()
+
+        setattr(ATestCase, method_name, do_stuff)
         testrun = run_testcases_with_django_runner(
-            ATestCase, nr_of_tests=1, all_should_pass=False)
+            ATestCase, nr_of_tests=test_methods_added + 1,
+            all_should_pass=False)
 
     assert 'LimitViolationError: ' in testrun["output"]
