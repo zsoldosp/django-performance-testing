@@ -37,9 +37,10 @@ class __NeededToFindInstanceMethodType(object):
 instancemethod = type(__NeededToFindInstanceMethodType().some_method)
 
 
-def wrap_instance_method(instance, method_name, collector_id,
-                         ctx_key, ctx_value):
+def wrap_instance_method(instance, method_name, collector_id, ctx_key):
     target_method = getattr(instance, method_name)
+    ctx_value = '{} ({})'.format(
+        method_name, unittest.util.strclass(instance.__class__))
     if isinstance(target_method, instancemethod):
         for collector in DjptTestRunnerMixin.collectors[collector_id]:
             BeforeAfterWrapper(
@@ -67,24 +68,20 @@ def get_runner_with_djpt_mixin(*a, **kw):
                 instance=test,
                 method_name=test._testMethodName,
                 collector_id='test method',
-                ctx_key='test name',
-                ctx_value='{} ({})'.format(
-                    test._testMethodName,
-                    unittest.util.strclass(test.__class__)))
+                ctx_key='test name'
+            )
             wrap_instance_method(
                 instance=test,
                 method_name='setUp',
                 collector_id='test setUp',
                 ctx_key='setup method',
-                ctx_value='setUp ({})'.format(
-                    unittest.util.strclass(test.__class__)))
+            )
             wrap_instance_method(
                 instance=test,
                 method_name='tearDown',
                 collector_id='test tearDown',
                 ctx_key='teardown method',
-                ctx_value='tearDown ({})'.format(
-                    unittest.util.strclass(test.__class__)))
+            )
         return retval
 
     def fn_to_id(fn):
