@@ -80,7 +80,6 @@ def test_runner_sets_executing_test_method_as_context():
 
 
 class FailsDbLimit(object):
-    limit_name = 'test method'
     limit_type = 'queries'
     limit_value = 0
 
@@ -95,7 +94,6 @@ class FailsDbLimit(object):
 
 
 class FailsTimeLimit(object):
-    limit_name = 'test method'
     limit_type = 'time'
     limit_value = 4
 
@@ -112,16 +110,16 @@ class FailsTimeLimit(object):
 
 
 @pytest.mark.parametrize(
-    'test_methods_added,method_name,limit_failer_cls', [
-        (1, 'test_foo', FailsDbLimit),
-        (1, 'test_foo', FailsTimeLimit),
+    'test_methods_added,limit_name,method_name,limit_failer_cls', [
+        (1, 'test method', 'test_foo', FailsDbLimit),
+        (1, 'test method', 'test_foo', FailsTimeLimit),
     ])
-def test_limits_can_be_set_on_testcase_methods(db, settings,
+def test_limits_can_be_set_on_testcase_methods(db, settings, limit_name,
                                                test_methods_added, method_name,
                                                limit_failer_cls):
     failer = limit_failer_cls()
     settings.PERFORMANCE_LIMITS = {
-        failer.limit_name: {
+        limit_name: {
             failer.limit_type: {
                 'total': failer.limit_value
             }
