@@ -68,7 +68,9 @@ def get_runner_with_djpt_mixin(*a, **kw):
                 method_name=test._testMethodName,
                 collector_id='test method',
                 ctx_key='test name',
-                ctx_value=str(test))
+                ctx_value='{} ({})'.format(
+                    test._testMethodName,
+                    unittest.util.strclass(test.__class__)))
             wrap_instance_method(
                 instance=test,
                 method_name='setUp',
