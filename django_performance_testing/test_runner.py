@@ -5,6 +5,7 @@ from django_performance_testing.reports import WorstReport
 from django_performance_testing.utils import BeforeAfterWrapper
 from django_performance_testing.context import scoped_context
 from django_performance_testing import core as djpt_core
+import unittest
 
 orig_get_runner = utils.get_runner
 
@@ -68,6 +69,13 @@ def get_runner_with_djpt_mixin(*a, **kw):
                 collector_id='test method',
                 ctx_key='test name',
                 ctx_value=str(test))
+            wrap_instance_method(
+                instance=test,
+                method_name='setUp',
+                collector_id='test setup',
+                ctx_key='setup method',
+                ctx_value='setUp ({})'.format(
+                    unittest.util.strclass(test.__class__)))
         return retval
 
     def fn_to_id(fn):
@@ -83,7 +91,7 @@ def integrate_into_django_test_runner():
     utils.get_runner = get_runner_with_djpt_mixin
     DjptTestRunnerMixin.collectors = {}
     DjptTestRunnerMixin.limits = {}
-    for collector_id in ['test method']:
+    for collector_id in ['test method', 'test setup']:
         collectors = DjptTestRunnerMixin.collectors[collector_id] = []
         limits = DjptTestRunnerMixin.limits[collector_id] = []
         for limit_cls in djpt_core.limits_registry.name2cls.values():

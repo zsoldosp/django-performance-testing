@@ -110,12 +110,14 @@ class FailsTimeLimit(object):
 
 
 @pytest.mark.parametrize(
-    'test_methods_added,limit_name,method_name,limit_failer_cls', [
-        (1, 'test method', 'test_foo', FailsDbLimit),
-        (1, 'test method', 'test_foo', FailsTimeLimit),
+    'adds_failing_test,limit_name,method_name,limit_failer_cls', [
+        (True, 'test method', 'test_foo', FailsDbLimit),
+        (True, 'test method', 'test_foo', FailsTimeLimit),
+        (False, 'test setup', 'setUp', FailsDbLimit),
+        (False, 'test setup', 'setUp', FailsTimeLimit),
     ])
 def test_limits_can_be_set_on_testcase_methods(db, settings, limit_name,
-                                               test_methods_added, method_name,
+                                               adds_failing_test, method_name,
                                                limit_failer_cls):
     failer = limit_failer_cls()
     settings.PERFORMANCE_LIMITS = {
@@ -133,10 +135,14 @@ def test_limits_can_be_set_on_testcase_methods(db, settings, limit_name,
                 pass
 
         def do_stuff(self):
+            do_stuff.called = True
             failer.code_that_fails()
+        do_stuff.called = False
 
         setattr(ATestCase, method_name, do_stuff)
+        nr_of_tests = 2 if adds_failing_test else 1
         test_run = run_testcases_with_django_runner(
-            ATestCase, nr_of_tests=test_methods_added + 1,
+            ATestCase, nr_of_tests=nr_of_tests,
             all_should_pass=False)
+    assert do_stuff.called
     assert 'LimitViolationError: ' in test_run["output"]
