@@ -34,11 +34,13 @@ class multi_context_manager(object):
         self._print('... entered')
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.next_:
-            self.next_.__exit__(exc_type, exc_val, exc_tb)
-        self._print('exiting...')
-        self.head_manager.__exit__(exc_type, exc_val, exc_tb)
-        self._print('... exited')
+        try:
+            if self.next_:
+                self.next_.__exit__(exc_type, exc_val, exc_tb)
+        finally:
+            self._print('exiting...')
+            self.head_manager.__exit__(exc_type, exc_val, exc_tb)
+            self._print('... exited')
 
 
 def with_context_manager(ctx_manager):

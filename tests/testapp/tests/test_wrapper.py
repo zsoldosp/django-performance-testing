@@ -211,6 +211,30 @@ class TestMultiContexManager(object):
 
         assert expected_calls == self.get_recorded_calls()
 
+    def test_three_managers_middle_one_fails(self):
+        """ this is like raising the LimitViolationError """
+        ControllableContextManager.reset_events()
+        outer = ControllableContextManager()
+        middle = ControllableContextManager(fail_in_method='__exit__')
+        inner = ControllableContextManager()
+
+        ControllableContextManager.reset_events()
+        with pytest.raises(ControllableContextManager.TestException):
+            with outer:
+                with middle:
+                    with inner:
+                        pass
+        expected_calls = self.get_recorded_calls()
+        assert expected_calls == [
+            (outer, '__enter__'), (middle, '__enter__'), (inner, '__enter__'),
+            (inner, '__exit__'), (middle, '__exit__'), (outer, '__exit__')
+        ]
+        ControllableContextManager.reset_events()
+        with pytest.raises(ControllableContextManager.TestException):
+            with multi_context_manager([outer, middle, inner]):
+                pass
+        assert expected_calls == self.get_recorded_calls()
+
     def get_recorded_calls_for_nested_ctx_managers(self,
                                                    outer, inner, fn=None):
         self.run_nested_context_managers(outer, inner, fn=fn)
