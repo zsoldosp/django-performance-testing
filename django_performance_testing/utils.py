@@ -4,7 +4,7 @@ from functools import wraps
 
 class multi_context_manager(object):
 
-    def __init__(self, managers):
+    def __init__(self, managers, debug=False):
         if not managers:
             raise ValueError('Expected at least one manager, got 0 as arg')
         self.head_manager = managers[0]
@@ -13,20 +13,32 @@ class multi_context_manager(object):
             self.next_ = multi_context_manager(self.tail_managers)
         else:
             self.next_ = None
+        self.debug = debug
+
+    def _print(self, action):
+        if self.debug:
+            id_ = getattr(self.head_manager, 'id_', None)
+            print('{} {} {}'.format(action, type(self.head_manager), id_))
 
     def __enter__(self):
+        self._print('entering....')
         self.head_manager.__enter__()
         if self.next_:
             try:
                 self.next_.__enter__()
             except:
+                self._print('exiting...')
                 self.head_manager.__exit__(*sys.exc_info())
+                self._print('... exited')
                 raise
+        self._print('... entered')
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.next_:
             self.next_.__exit__(exc_type, exc_val, exc_tb)
+        self._print('exiting...')
         self.head_manager.__exit__(exc_type, exc_val, exc_tb)
+        self._print('... exited')
 
 
 def with_context_manager(ctx_manager):
