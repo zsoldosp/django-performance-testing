@@ -2,7 +2,8 @@
 from django.conf import settings
 from django.test import utils
 from django_performance_testing.reports import WorstReport
-from django_performance_testing.utils import BeforeAfterWrapper
+from django_performance_testing.utils import \
+    BeforeAfterWrapper, multi_context_manager
 from django_performance_testing.context import scoped_context
 from django_performance_testing import core as djpt_core
 import unittest
@@ -35,12 +36,11 @@ def wrap_cls_method(cls, method_name, collector_id, ctx_key):
         return
     ctx_value = '{} ({})'.format(
         method_name, unittest.util.strclass(cls))
-    for collector in DjptTestRunnerMixin.collectors[collector_id]:
-        BeforeAfterWrapper(
-            cls, method_name, context_manager=collector)
     ctx = scoped_context(key=ctx_key, value=ctx_value)
-    BeforeAfterWrapper(
-        cls, method_name, context_manager=ctx)
+    mcm = multi_context_manager(
+        list((DjptTestRunnerMixin.collectors[collector_id] + [ctx]))
+    )
+    BeforeAfterWrapper(cls, method_name, context_manager=mcm)
     target_method.__dict__[has_been_patched_flag] = True
 
 
