@@ -67,14 +67,14 @@ def get_runner_with_djpt_mixin(*a, **kw):
                 cls=test_cls,
                 method_name='setUp',
                 collector_id='test setUp',
-                ctx_key='setup method',
+                ctx_key='setUp method',
                 is_cls_method=False,
             )
             wrap_cls_method(
                 cls=test_cls,
                 method_name='tearDown',
                 collector_id='test tearDown',
-                ctx_key='teardown method',
+                ctx_key='tearDown method',
                 is_cls_method=False,
             )
             wrap_cls_method(
