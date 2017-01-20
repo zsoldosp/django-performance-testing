@@ -55,12 +55,19 @@ def with_context_manager(ctx_manager):
     return decorator
 
 
-def wrap_cls_method_in_ctx_manager(cls, method_name, ctx_manager):
+def wrap_cls_method_in_ctx_manager(cls, method_name, ctx_manager,
+                                   is_cls_method=False):
     target_method = getattr(cls, method_name)
     has_been_patched_flag = 'djpt_patched'
     if hasattr(target_method, has_been_patched_flag):
         return
+    if is_cls_method:
+        # as classmethod must be outermost decorator
+        target_method = target_method.__func__
     wrapped_method = with_context_manager(ctx_manager)(target_method)
+    if is_cls_method:
+        # as classmethod must be outermost decorator
+        wrapped_method = classmethod(wrapped_method)
     setattr(cls, method_name, wrapped_method)
     target_method = getattr(cls, method_name)
     assert hasattr(target_method, has_been_patched_flag), (cls, target_method)

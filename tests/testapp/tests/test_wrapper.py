@@ -41,10 +41,11 @@ class ControllableContextManager(object):
         return str(self.counter)
 
 
-def wrap_via_cls_methods(cls_to_wrap, method_to_wrap_name, context_manager):
+def wrap_via_cls_methods(cls_to_wrap, method_to_wrap_name,
+                         context_manager, is_cls_method=False):
     wrap_cls_method_in_ctx_manager(
         cls=cls_to_wrap, method_name=method_to_wrap_name,
-        ctx_manager=context_manager
+        ctx_manager=context_manager, is_cls_method=is_cls_method
     )
 
 
@@ -110,6 +111,27 @@ def test_wrapper_keeps_original_functions_attributes(wrapper):
     wrapper(f, 'foo', context_manager=None)
     assert hasattr(f.foo, 'returns')  # after wrapping
     assert 'str' == getattr(f.foo, 'returns')  # after wrapping
+
+
+def test_wrapper_can_be_applied_to_classmethods(wrapper):
+
+    class Foo(object):
+        has_been_called = False
+
+        @classmethod
+        def some_classmethod(cls, some_arg):
+            assert cls == Foo
+            assert some_arg == 'hello'
+            cls.has_been_called = True
+
+    ctx = ControllableContextManager()
+    wrapper(Foo, 'some_classmethod', context_manager=ctx, is_cls_method=True)
+    assert ctx.before_call_count == 0
+    assert ctx.after_call_count == 0
+    Foo.some_classmethod('hello')
+    assert ctx.before_call_count == 1
+    assert ctx.after_call_count == 1
+    assert Foo.has_been_called
 
 
 class TestMultiContexManager(object):
