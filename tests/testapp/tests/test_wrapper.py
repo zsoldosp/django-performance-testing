@@ -1,4 +1,5 @@
-from django_performance_testing.utils import BeforeAfterWrapper
+from django_performance_testing.utils import \
+    BeforeAfterWrapper, wrap_cls_method_in_ctx_manager
 import pytest
 
 
@@ -21,7 +22,14 @@ def wrap_via_baw(wrapped_self, method_to_wrap_name, context_manager):
         context_manager=context_manager)
 
 
-@pytest.fixture(params=[wrap_via_baw])
+def wrap_via_cls_methods(wrapped_self, method_to_wrap_name, context_manager):
+    wrap_cls_method_in_ctx_manager(
+        cls=type(wrapped_self), method_name=method_to_wrap_name,
+        ctx_manager=context_manager
+    )
+
+
+@pytest.fixture(params=[wrap_via_baw, wrap_via_cls_methods])
 def wrapper(request):
     return request.param
 

@@ -1,6 +1,29 @@
 from functools import wraps
 
 
+def with_context_manager(ctx_manager):
+    def decorator(fn):
+        @wraps(fn)
+        def context_manager_wrapper(*a, **kw):
+            with ctx_manager:
+                return fn(*a, **kw)
+        context_manager_wrapper.djpt_patched = True
+        return context_manager_wrapper
+
+    return decorator
+
+
+def wrap_cls_method_in_ctx_manager(cls, method_name, ctx_manager):
+    target_method = getattr(cls, method_name)
+    has_been_patched_flag = 'djpt_patched'
+    if hasattr(target_method, has_been_patched_flag):
+        return
+    wrapped_method = with_context_manager(ctx_manager)(target_method)
+    setattr(cls, method_name, wrapped_method)
+    target_method = getattr(cls, method_name)
+    assert hasattr(target_method, has_been_patched_flag), (cls, target_method)
+
+
 class run_with(object):
     def __init__(self, ctx_manager):
         self.ctx_manager = ctx_manager
