@@ -56,7 +56,7 @@ def with_context_manager(ctx_manager):
 
 
 def wrap_cls_method_in_ctx_manager(cls, method_name, ctx_manager,
-                                   is_cls_method=False):
+                                   is_cls_method):
     target_method = getattr(cls, method_name)
     has_been_patched_flag = 'djpt_patched'
     if hasattr(target_method, has_been_patched_flag):

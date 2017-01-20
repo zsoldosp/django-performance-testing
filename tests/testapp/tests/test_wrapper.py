@@ -42,7 +42,7 @@ class ControllableContextManager(object):
 
 
 def wrap_via_cls_methods(cls_to_wrap, method_to_wrap_name,
-                         context_manager, is_cls_method=False):
+                         context_manager, is_cls_method):
     wrap_cls_method_in_ctx_manager(
         cls=cls_to_wrap, method_name=method_to_wrap_name,
         ctx_manager=context_manager, is_cls_method=is_cls_method
@@ -58,7 +58,11 @@ def test_fails_when_class_has_no_such_method_as_to_wrap(wrapper):
     with pytest.raises(AttributeError):
         wrapper(
             cls_to_wrap=object, method_to_wrap_name='no_such_method',
-            context_manager=None)
+            context_manager=None, is_cls_method=False)
+    with pytest.raises(AttributeError):
+        wrapper(
+            cls_to_wrap=object, method_to_wrap_name='no_such_method',
+            context_manager=None, is_cls_method=True)
 
 
 def test_before_after_hooks_are_as_expected(wrapper):
@@ -71,7 +75,8 @@ def test_before_after_hooks_are_as_expected(wrapper):
     foo = Foo()
     ctx = ControllableContextManager()
     wrapper(
-        cls_to_wrap=Foo, method_to_wrap_name='foo', context_manager=ctx)
+        cls_to_wrap=Foo, method_to_wrap_name='foo', context_manager=ctx,
+        is_cls_method=False)
     assert ctx.before_call_count == 0
     assert ctx.after_call_count == 0
     foo.foo()
@@ -89,7 +94,8 @@ def test_hooks_are_run_even_if_there_was_an_exception(wrapper):
     bar = Bar()
     ctx = ControllableContextManager()
     wrapper(
-        cls_to_wrap=Bar, method_to_wrap_name='will_fail', context_manager=ctx)
+        cls_to_wrap=Bar, method_to_wrap_name='will_fail', context_manager=ctx,
+        is_cls_method=False)
     with pytest.raises(Exception) as excinfo:
         bar.will_fail()
     assert str(excinfo.value) == 'heh'
@@ -108,7 +114,7 @@ def test_wrapper_keeps_original_functions_attributes(wrapper):
     f = Foo()
     assert hasattr(f.foo, 'returns')  # before wrapping
     assert 'str' == getattr(f.foo, 'returns')  # before wrapping
-    wrapper(f, 'foo', context_manager=None)
+    wrapper(f, 'foo', context_manager=None, is_cls_method=False)
     assert hasattr(f.foo, 'returns')  # after wrapping
     assert 'str' == getattr(f.foo, 'returns')  # after wrapping
 

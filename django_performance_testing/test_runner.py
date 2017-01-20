@@ -29,7 +29,7 @@ class DjptTestRunnerMixin(object):
         return retval
 
 
-def wrap_cls_method(cls, method_name, collector_id, ctx_key):
+def wrap_cls_method(cls, method_name, collector_id, ctx_key, is_cls_method):
     ctx_value = '{} ({})'.format(
         method_name, unittest.util.strclass(cls))
     ctx = scoped_context(key=ctx_key, value=ctx_value)
@@ -37,7 +37,8 @@ def wrap_cls_method(cls, method_name, collector_id, ctx_key):
         list((DjptTestRunnerMixin.collectors[collector_id] + [ctx]))
     )
     wrap_cls_method_in_ctx_manager(
-        cls=cls, method_name=method_name, ctx_manager=mcm)
+        cls=cls, method_name=method_name, ctx_manager=mcm,
+        is_cls_method=is_cls_method)
 
 
 def get_runner_with_djpt_mixin(*a, **kw):
@@ -59,19 +60,22 @@ def get_runner_with_djpt_mixin(*a, **kw):
                 cls=test_cls,
                 method_name=test._testMethodName,
                 collector_id='test method',
-                ctx_key='test name'
+                ctx_key='test name',
+                is_cls_method=False,
             )
             wrap_cls_method(
                 cls=test_cls,
                 method_name='setUp',
                 collector_id='test setUp',
                 ctx_key='setup method',
+                is_cls_method=False,
             )
             wrap_cls_method(
                 cls=test_cls,
                 method_name='tearDown',
                 collector_id='test tearDown',
                 ctx_key='teardown method',
+                is_cls_method=False,
             )
         return retval
 
