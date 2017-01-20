@@ -1,4 +1,32 @@
+import sys
 from functools import wraps
+
+
+class multi_context_manager(object):
+
+    def __init__(self, managers):
+        if not managers:
+            raise ValueError('Expected at least one manager, got 0 as arg')
+        self.head_manager = managers[0]
+        self.tail_managers = managers[1:]
+        if self.tail_managers:
+            self.next_ = multi_context_manager(self.tail_managers)
+        else:
+            self.next_ = None
+
+    def __enter__(self):
+        self.head_manager.__enter__()
+        if self.next_:
+            try:
+                self.next_.__enter__()
+            except:
+                self.head_manager.__exit__(*sys.exc_info())
+                raise
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.next_:
+            self.next_.__exit__(exc_type, exc_val, exc_tb)
+        self.head_manager.__exit__(exc_type, exc_val, exc_tb)
 
 
 def with_context_manager(ctx_manager):

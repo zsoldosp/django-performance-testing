@@ -1,19 +1,45 @@
 from django_performance_testing.utils import \
-    BeforeAfterWrapper, wrap_cls_method_in_ctx_manager
+    BeforeAfterWrapper, wrap_cls_method_in_ctx_manager, \
+    multi_context_manager
 import pytest
 
 
 class ControllableContextManager(object):
-    def __init__(self):
+
+    class TestException(Exception):
+        pass
+
+    events_in_order = []
+    counter = 0
+
+    @classmethod
+    def reset_events(cls):
+        cls.events_in_order = []
+        cls.counter = 0
+
+    def __init__(self, fail_in_method=None):
+        self.counter = type(self).counter
+        type(self).counter += 1
         self.before_call_count = 0
         self.after_call_count = 0
+        self.fail_in_method = fail_in_method
 
     def __enter__(self):
         self.before_call_count += 1
+        self.handle_method_was_called('__enter__')
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.after_call_count += 1
+        self.handle_method_was_called('__exit__')
+
+    def handle_method_was_called(self, current_method_name):
+        self.events_in_order.append((self, current_method_name))
+        if self.fail_in_method == current_method_name:
+            raise self.TestException('as requested, failing')
+
+    def __repr__(self):
+        return str(self.counter)
 
 
 def wrap_via_baw(wrapped_self, method_to_wrap_name, context_manager):
@@ -91,3 +117,114 @@ def test_wrapper_keeps_original_functions_attributes(wrapper):
     wrapper(f, 'foo', context_manager=None)
     assert hasattr(f.foo, 'returns')  # after BeforeAfterWrapper
     assert 'str' == getattr(f.foo, 'returns')  # after BeforeAfterWrapper
+
+
+class TestMultiContexManager(object):
+
+    def test_cant_construct_it_without_a_managers(self):
+        with pytest.raises(ValueError):
+            multi_context_manager([])
+
+    def test_runs_a_single_context_manager(self):
+        ControllableContextManager.reset_events()
+        mgr = ControllableContextManager()
+        with multi_context_manager([mgr]):
+            pass
+
+        expected_calls = [(mgr, '__enter__'), (mgr, '__exit__')]
+        assert expected_calls == self.get_recorded_calls()
+
+    def test_runs_all_context_managers(self):
+        ControllableContextManager.reset_events()
+        outer = ControllableContextManager()
+        inner = ControllableContextManager()
+
+        expected_calls = self.get_recorded_calls_for_nested_ctx_managers(
+            outer, inner)
+        assert expected_calls == [
+            (outer, '__enter__'), (inner, '__enter__'),
+            (inner, '__exit__'), (outer, '__exit__')
+        ]
+
+        ControllableContextManager.reset_events()
+        with multi_context_manager([outer, inner]):
+            pass
+
+        assert expected_calls == self.get_recorded_calls()
+
+    def test_when_inner_enter_fails(self):
+        ControllableContextManager.reset_events()
+        outer = ControllableContextManager()
+        inner = ControllableContextManager(fail_in_method='__enter__')
+
+        with pytest.raises(ControllableContextManager.TestException):
+            self.run_nested_context_managers(outer, inner)
+        expected_calls = self.get_recorded_calls()
+
+        assert expected_calls == [
+            (outer, '__enter__'), (inner, '__enter__'), (outer, '__exit__')
+        ]
+
+        ControllableContextManager.reset_events()
+        with pytest.raises(ControllableContextManager.TestException):
+            with multi_context_manager([outer, inner]):
+                pass
+        assert expected_calls == self.get_recorded_calls()
+
+    def test_when_outer_enter_fails(self):
+        ControllableContextManager.reset_events()
+        outer = ControllableContextManager(fail_in_method='__enter__')
+        inner = ControllableContextManager()
+
+        with pytest.raises(ControllableContextManager.TestException):
+            self.run_nested_context_managers(outer, inner)
+
+        expected_calls = self.get_recorded_calls()
+        assert expected_calls == [(outer, '__enter__')]
+
+        ControllableContextManager.reset_events()
+        with pytest.raises(ControllableContextManager.TestException):
+            with multi_context_manager([outer, inner]):
+                pass
+        assert expected_calls == self.get_recorded_calls()
+
+    def test_when_code_inside_context_managers_fails(self):
+        ControllableContextManager.reset_events()
+        outer = ControllableContextManager()
+        inner = ControllableContextManager()
+
+        def fail():
+            raise NotImplementedError('hi')
+
+        with pytest.raises(NotImplementedError):
+            self.run_nested_context_managers(outer, inner, fn=fail)
+        expected_calls = self.get_recorded_calls()
+        assert expected_calls == [
+            (outer, '__enter__'), (inner, '__enter__'),
+            (inner, '__exit__'), (outer, '__exit__')
+        ]
+
+        ControllableContextManager.reset_events()
+        with pytest.raises(NotImplementedError):
+            with multi_context_manager([outer, inner]):
+                fail()
+
+        assert expected_calls == self.get_recorded_calls()
+
+    def get_recorded_calls_for_nested_ctx_managers(self,
+                                                   outer, inner, fn=None):
+        self.run_nested_context_managers(outer, inner, fn=fn)
+        return self.get_recorded_calls()
+
+    def run_nested_context_managers(self, outer, inner, fn=None):
+        if fn is None:
+            def noop(): return None
+            fn = noop
+        ControllableContextManager.reset_events()
+        with outer:
+            with inner:
+                fn()
+        return self.get_recorded_calls()
+
+    def get_recorded_calls(self):
+        return list(ControllableContextManager.events_in_order)
