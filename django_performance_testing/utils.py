@@ -66,28 +66,6 @@ def wrap_cls_method_in_ctx_manager(cls, method_name, ctx_manager):
     assert hasattr(target_method, has_been_patched_flag), (cls, target_method)
 
 
-class run_with(object):
-    def __init__(self, ctx_manager):
-        self.ctx_manager = ctx_manager
-
-    def __call__(self, test_fn):
-        @wraps(test_fn)
-        def with_ctx_mngr_wrapper(*a, **kw):
-            with self.ctx_manager:
-                return test_fn(*a, **kw)
-        with_ctx_mngr_wrapper.ctx_manager = self.ctx_manager
-        return with_ctx_mngr_wrapper
-
-
-class BeforeAfterWrapper(object):
-    def __init__(self, wrapped_self, method_to_wrap_name, context_manager):
-        method_to_wrap = getattr(wrapped_self, method_to_wrap_name)
-        setattr(
-            wrapped_self, method_to_wrap_name,
-            run_with(context_manager)(method_to_wrap)
-        )
-
-
 class DelegatingProxy(object):
     """
     Proxy for accessing the wrapped object's attributes, while allowing
