@@ -119,6 +119,8 @@ class FailsTimeLimit(object):
         (0, 'test tearDown', 'tearDown', FailsTimeLimit, False),
         (-1, 'test setUpClass', 'setUpClass', FailsDbLimit, True),
         (-1, 'test setUpClass', 'setUpClass', FailsTimeLimit, True),
+        (0, 'test tearDownClass', 'tearDownClass', FailsDbLimit, True),
+        (0, 'test tearDownClass', 'tearDownClass', FailsTimeLimit, True),
     ])
 def test_limits_can_be_set_on_testcase_methods(db, settings, limit_name,
                                                ran_test_delta, method_name,
