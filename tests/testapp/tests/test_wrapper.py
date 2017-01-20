@@ -15,14 +15,25 @@ class TrackBeforeAfterCallCount(object):
         self.after_call_count += 1
 
 
-def test_fails_when_class_has_no_such_method_as_to_wrap():
+def wrap_via_baw(wrapped_self, method_to_wrap_name, context_manager):
+    BeforeAfterWrapper(
+        wrapped_self=wrapped_self, method_to_wrap_name=method_to_wrap_name,
+        context_manager=context_manager)
+
+
+@pytest.fixture(params=[wrap_via_baw])
+def wrapper(request):
+    return request.param
+
+
+def test_fails_when_class_has_no_such_method_as_to_wrap(wrapper):
     with pytest.raises(AttributeError):
-        BeforeAfterWrapper(
+        wrapper(
             wrapped_self=object(), method_to_wrap_name='no_such_method',
             context_manager=None)
 
 
-def test_before_after_hooks_are_as_expected():
+def test_before_after_hooks_are_as_expected(wrapper):
     class Foo(object):
 
         def foo(self):
@@ -31,7 +42,7 @@ def test_before_after_hooks_are_as_expected():
 
     foo = Foo()
     ctx = TrackBeforeAfterCallCount()
-    BeforeAfterWrapper(
+    wrapper(
         wrapped_self=foo, method_to_wrap_name='foo', context_manager=ctx)
     assert ctx.before_call_count == 0
     assert ctx.after_call_count == 0
@@ -40,7 +51,7 @@ def test_before_after_hooks_are_as_expected():
     assert ctx.after_call_count == 1
 
 
-def test_hooks_are_run_even_if_there_was_an_exception():
+def test_hooks_are_run_even_if_there_was_an_exception(wrapper):
     class Bar(object):
 
         def will_fail(self):
@@ -49,7 +60,7 @@ def test_hooks_are_run_even_if_there_was_an_exception():
 
     bar = Bar()
     ctx = TrackBeforeAfterCallCount()
-    BeforeAfterWrapper(
+    wrapper(
         wrapped_self=bar, method_to_wrap_name='will_fail', context_manager=ctx)
     with pytest.raises(Exception) as excinfo:
         bar.will_fail()
@@ -58,7 +69,7 @@ def test_hooks_are_run_even_if_there_was_an_exception():
     assert ctx.after_call_count == 1
 
 
-def test_wrapper_keeps_original_functions_attributes():
+def test_wrapper_keeps_original_functions_attributes(wrapper):
 
     class Foo(object):
 
@@ -69,6 +80,6 @@ def test_wrapper_keeps_original_functions_attributes():
     f = Foo()
     assert hasattr(f.foo, 'returns')  # before BeforeAfterWrapper
     assert 'str' == getattr(f.foo, 'returns')  # before BeforeAfterWrapper
-    BeforeAfterWrapper(f, 'foo', context_manager=None)
+    wrapper(f, 'foo', context_manager=None)
     assert hasattr(f.foo, 'returns')  # after BeforeAfterWrapper
     assert 'str' == getattr(f.foo, 'returns')  # after BeforeAfterWrapper
