@@ -97,6 +97,8 @@ Following are the keys that are currently supported for
     classes
   * ``test tearDown`` - the ``TestCase.tearDown`` methods you write for your
     test classes
+  * ``test setUpClass`` - the ``TestCase.setUpClass`` methods you write for
+    your test classes
 
 For each of the above keys, there is a ``dict`` that holds the actual limits.
 The keys are the limit types (``queries`` and/or ``time``), and the value is
@@ -212,7 +214,7 @@ Release Notes
 
   * django test runner integration now uses ``settings.DJPT_KNOWN_LIMITS_DOTTED_PATHS``
     for the collectors/limits it initializes, thus allowing 3rd party collectors/limits
-  * new predefined limit points: ``test setUp``, ``test tearDown``
+  * new predefined limit points: ``test setUp``, ``test tearDown``, ``test setUpClass``
 
 * 0.5.0
 

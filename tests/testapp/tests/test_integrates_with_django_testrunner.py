@@ -110,17 +110,19 @@ class FailsTimeLimit(object):
 
 
 @pytest.mark.parametrize(
-    'adds_failing_test,limit_name,method_name,limit_failer_cls', [
-        (True, 'test method', 'test_foo', FailsDbLimit),
-        (True, 'test method', 'test_foo', FailsTimeLimit),
-        (False, 'test setUp', 'setUp', FailsDbLimit),
-        (False, 'test setUp', 'setUp', FailsTimeLimit),
-        (False, 'test tearDown', 'tearDown', FailsDbLimit),
-        (False, 'test tearDown', 'tearDown', FailsTimeLimit),
+    'ran_test_delta,limit_name,method_name,limit_failer_cls,is_cls_fn', [
+        (1, 'test method', 'test_foo', FailsDbLimit, False),
+        (1, 'test method', 'test_foo', FailsTimeLimit, False),
+        (0, 'test setUp', 'setUp', FailsDbLimit, False),
+        (0, 'test setUp', 'setUp', FailsTimeLimit, False),
+        (0, 'test tearDown', 'tearDown', FailsDbLimit, False),
+        (0, 'test tearDown', 'tearDown', FailsTimeLimit, False),
+        (-1, 'test setUpClass', 'setUpClass', FailsDbLimit, True),
+        (-1, 'test setUpClass', 'setUpClass', FailsTimeLimit, True),
     ])
 def test_limits_can_be_set_on_testcase_methods(db, settings, limit_name,
-                                               adds_failing_test, method_name,
-                                               limit_failer_cls):
+                                               ran_test_delta, method_name,
+                                               limit_failer_cls, is_cls_fn):
     failer = limit_failer_cls()
     settings.PERFORMANCE_LIMITS = {
         limit_name: {
@@ -136,15 +138,19 @@ def test_limits_can_be_set_on_testcase_methods(db, settings, limit_name,
             def test_default(self):
                 pass
 
-        def do_stuff(self):
-            do_stuff.called = True
-            failer.code_that_fails()
-        do_stuff.called = False
+            called_do_stuff = False
 
-        setattr(ATestCase, method_name, do_stuff)
-        nr_of_tests = 2 if adds_failing_test else 1
+        def do_stuff(*a, **kw):
+            ATestCase.called_do_stuff = True
+            failer.code_that_fails()
+
+        if is_cls_fn:
+            setattr(ATestCase, method_name, classmethod(do_stuff))
+        else:
+            setattr(ATestCase, method_name, do_stuff)
+        nr_of_tests = 1 + ran_test_delta
         test_run = run_testcases_with_django_runner(
             ATestCase, nr_of_tests=nr_of_tests,
             all_should_pass=False)
-    assert do_stuff.called
+    assert ATestCase.called_do_stuff, test_run['output']
     assert 'LimitViolationError: ' in test_run["output"]

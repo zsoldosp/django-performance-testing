@@ -77,6 +77,13 @@ def get_runner_with_djpt_mixin(*a, **kw):
                 ctx_key='teardown method',
                 is_cls_method=False,
             )
+            wrap_cls_method(
+                cls=test_cls,
+                method_name='setUpClass',
+                collector_id='test setUpClass',
+                ctx_key='setUpClass method',
+                is_cls_method=True,
+            )
         return retval
 
     def fn_to_id(fn):
@@ -92,7 +99,11 @@ def integrate_into_django_test_runner():
     utils.get_runner = get_runner_with_djpt_mixin
     DjptTestRunnerMixin.collectors = {}
     DjptTestRunnerMixin.limits = {}
-    for collector_id in ['test method', 'test setUp', 'test tearDown']:
+    collector_ids = [
+        'test method', 'test setUp', 'test tearDown',
+        'test setUpClass',
+    ]
+    for collector_id in collector_ids:
         collectors = DjptTestRunnerMixin.collectors[collector_id] = []
         limits = DjptTestRunnerMixin.limits[collector_id] = []
         for limit_cls in djpt_core.limits_registry.name2cls.values():
