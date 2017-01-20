@@ -8,6 +8,7 @@ import pytest
 from testapp.test_helpers import (override_current_context,
                                   run_testcases_with_django_runner)
 import unittest
+import re
 
 
 def to_dotted_name(cls):
@@ -155,4 +156,12 @@ def test_limits_can_be_set_on_testcase_methods(db, settings, limit_name,
             ATestCase, nr_of_tests=nr_of_tests,
             all_should_pass=False)
     assert ATestCase.called_do_stuff, test_run['output']
-    assert 'LimitViolationError: ' in test_run["output"]
+    parts = test_run['output'].split('LimitViolationError: ')
+    assert len(parts) == 2, 'has LimitViolationError in the output'
+    lve_msg = parts[-1].split('FAILED (')[0].split('  File "')[0]
+    lve_msg_oneline = ''.join(lve_msg.split('\n'))
+    lve_msg = re.sub(r"'+\s+'", '', lve_msg_oneline)
+    # e.g.: Too many (1) total queries (for test method) (limit: 0) {'test name': ['test_foo (testapp.tests.test_integrates_with_django_testrunner.ATestCase)']}  # noqa: E501
+    reported_method = lve_msg.split('[')[-1].split(']')[0][1:-1]
+    assert reported_method.startswith(method_name), lve_msg
+    assert ATestCase.__name__ in reported_method, lve_msg

@@ -34,7 +34,7 @@ def wrap_cls_method(cls, method_name, collector_id, ctx_key, is_cls_method):
         method_name, unittest.util.strclass(cls))
     ctx = scoped_context(key=ctx_key, value=ctx_value)
     mcm = multi_context_manager(
-        list((DjptTestRunnerMixin.collectors[collector_id] + [ctx]))
+        [ctx] + list((DjptTestRunnerMixin.collectors[collector_id]))
     )
     wrap_cls_method_in_ctx_manager(
         cls=cls, method_name=method_name, ctx_manager=mcm,
