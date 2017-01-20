@@ -3,7 +3,7 @@ from django.conf import settings
 from django.test import utils
 from django_performance_testing.reports import WorstReport
 from django_performance_testing.utils import \
-    BeforeAfterWrapper, multi_context_manager
+    multi_context_manager, wrap_cls_method_in_ctx_manager
 from django_performance_testing.context import scoped_context
 from django_performance_testing import core as djpt_core
 import unittest
@@ -30,18 +30,14 @@ class DjptTestRunnerMixin(object):
 
 
 def wrap_cls_method(cls, method_name, collector_id, ctx_key):
-    target_method = getattr(cls, method_name)
-    has_been_patched_flag = 'ctx_manager'
-    if hasattr(target_method, has_been_patched_flag):
-        return
     ctx_value = '{} ({})'.format(
         method_name, unittest.util.strclass(cls))
     ctx = scoped_context(key=ctx_key, value=ctx_value)
     mcm = multi_context_manager(
         list((DjptTestRunnerMixin.collectors[collector_id] + [ctx]))
     )
-    BeforeAfterWrapper(cls, method_name, context_manager=mcm)
-    target_method.__dict__[has_been_patched_flag] = True
+    wrap_cls_method_in_ctx_manager(
+        cls=cls, method_name=method_name, ctx_manager=mcm)
 
 
 def get_runner_with_djpt_mixin(*a, **kw):
