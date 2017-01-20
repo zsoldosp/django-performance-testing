@@ -112,11 +112,11 @@ def test_wrapper_keeps_original_functions_attributes(wrapper):
         foo.returns = 'str'
 
     f = Foo()
-    assert hasattr(f.foo, 'returns')  # before BeforeAfterWrapper
-    assert 'str' == getattr(f.foo, 'returns')  # before BeforeAfterWrapper
+    assert hasattr(f.foo, 'returns')  # before wrapping
+    assert 'str' == getattr(f.foo, 'returns')  # before wrapping
     wrapper(f, 'foo', context_manager=None)
-    assert hasattr(f.foo, 'returns')  # after BeforeAfterWrapper
-    assert 'str' == getattr(f.foo, 'returns')  # after BeforeAfterWrapper
+    assert hasattr(f.foo, 'returns')  # after wrapping
+    assert 'str' == getattr(f.foo, 'returns')  # after wrapping
 
 
 class TestMultiContexManager(object):
