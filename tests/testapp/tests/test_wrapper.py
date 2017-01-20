@@ -3,7 +3,7 @@ from django_performance_testing.utils import \
 import pytest
 
 
-class TrackBeforeAfterCallCount(object):
+class ControllableContextManager(object):
     def __init__(self):
         self.before_call_count = 0
         self.after_call_count = 0
@@ -49,7 +49,7 @@ def test_before_after_hooks_are_as_expected(wrapper):
             assert ctx.after_call_count == 0
 
     foo = Foo()
-    ctx = TrackBeforeAfterCallCount()
+    ctx = ControllableContextManager()
     wrapper(
         wrapped_self=foo, method_to_wrap_name='foo', context_manager=ctx)
     assert ctx.before_call_count == 0
@@ -67,7 +67,7 @@ def test_hooks_are_run_even_if_there_was_an_exception(wrapper):
             raise Exception('heh')
 
     bar = Bar()
-    ctx = TrackBeforeAfterCallCount()
+    ctx = ControllableContextManager()
     wrapper(
         wrapped_self=bar, method_to_wrap_name='will_fail', context_manager=ctx)
     with pytest.raises(Exception) as excinfo:
