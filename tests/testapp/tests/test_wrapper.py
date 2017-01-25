@@ -140,7 +140,7 @@ def test_wrapper_can_be_applied_to_classmethods(wrapper):
     assert Foo.has_been_called
 
 
-class TestMultiContexManager(object):
+class TestMultiContextManager(object):
 
     def test_cant_construct_it_without_a_managers(self):
         with pytest.raises(ValueError):
