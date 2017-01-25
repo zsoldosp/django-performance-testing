@@ -17,7 +17,7 @@ class WithId(FakeSender):
 
 class RunnerTestCasePackage(object):
 
-    def __init__(self, testcase_cls, nr_of_tests, all_should_pass=True,
+    def __init__(self, testcases_to_run, nr_of_tests, all_should_pass=True,
                  print_bad=True, runner_options=None):
         runner_options = runner_options or {}
         self.nr_of_tests = nr_of_tests
@@ -27,8 +27,10 @@ class RunnerTestCasePackage(object):
         django_runner_cls = get_runner(settings)
         django_runner = django_runner_cls(**runner_options)
         self.suite = django_runner.test_suite()
-        tests = django_runner.test_loader.loadTestsFromTestCase(testcase_cls)
-        self.suite.addTests(tests)
+        for testcase_cls in testcases_to_run:
+            tests = django_runner.test_loader.loadTestsFromTestCase(
+                testcase_cls)
+            self.suite.addTests(tests)
         self.test_runner = django_runner.test_runner(
             resultclass=django_runner.get_resultclass(),
             stream=six.StringIO()
@@ -36,27 +38,31 @@ class RunnerTestCasePackage(object):
 
     def run(self):
         result = self.test_runner.run(self.suite)
-        assert result.testsRun == self.nr_of_tests
         unexpected = result.errors + result.failures
+        result.output = result.stream.getvalue()
         if unexpected:
             if self.print_bad:
                 for (test, msg) in unexpected:
                     print('{}\n\n{}\n'.format(test, msg))
-            assert not self.all_should_pass
+            assert not self.all_should_pass, result.output
         else:
-            assert self.all_should_pass
+            assert self.all_should_pass, result.output
+        assert result.testsRun == self.nr_of_tests, result.output
         return result
 
 
-def run_testcase_with_django_runner(testcase_cls, nr_of_tests,
-                                    all_should_pass=True, print_bad=True,
-                                    runner_options=None):
-    package = RunnerTestCasePackage(testcase_cls, nr_of_tests, all_should_pass,
-                                    print_bad, runner_options)
+def run_testcases_with_django_runner(testcases_to_run, nr_of_tests,
+                                     all_should_pass=True, print_bad=True,
+                                     runner_options=None):
+    if isinstance(testcases_to_run, type):
+        testcases_to_run = [testcases_to_run]
+    package = RunnerTestCasePackage(
+        testcases_to_run, nr_of_tests, all_should_pass,
+        print_bad, runner_options)
     result = package.run()
     return {
         "result": result,
-        "output": result.stream.getvalue(),
+        "output": result.output,
         "runner": package.test_runner
     }
 

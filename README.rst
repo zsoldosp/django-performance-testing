@@ -89,8 +89,18 @@ Following are the keys that are currently supported for
   is limited, i.e.: ``GET``, ``POST``, etc.
 * ``Template.render`` - every ``render`` call is checked for limits.
   Note: it's   recursive, i.e.: `include` and similar tags result in a check
-* ``test method`` - the actual various ``unittest`` test methods that
-  you write for your app
+* for testcase classes, there is
+
+  * ``test method`` - the actual various ``unittest`` test methods that
+    you write for your app
+  * ``test setUp`` - the ``TestCase.setUp`` methods you write for your test
+    classes
+  * ``test tearDown`` - the ``TestCase.tearDown`` methods you write for your
+    test classes
+  * ``test setUpClass`` - the ``TestCase.setUpClass`` methods you write for
+    your test classes
+  * ``test tearDownClass`` - the ``TestCase.tearDownClass`` methods you write for
+    your test classes
 
 For each of the above keys, there is a ``dict`` that holds the actual limits.
 The keys are the limit types (``queries`` and/or ``time``), and the value is
@@ -201,6 +211,13 @@ as the app has defaults that include all limits.
 
 Release Notes
 =============
+
+* 0.6.0
+
+  * django test runner integration now uses ``settings.DJPT_KNOWN_LIMITS_DOTTED_PATHS``
+    for the collectors/limits it initializes, thus allowing 3rd party collectors/limits
+  * new predefined limit points: ``test setUp``, ``test tearDown``, ``test setUpClass``,
+    ``test tearDownClass``
 
 * 0.5.0
 

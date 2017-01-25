@@ -2,10 +2,11 @@
 from django.conf import settings
 from django.test import utils
 from django_performance_testing.reports import WorstReport
-from django_performance_testing.utils import BeforeAfterWrapper
+from django_performance_testing.utils import \
+    multi_context_manager, wrap_cls_method_in_ctx_manager
 from django_performance_testing.context import scoped_context
-from django_performance_testing.queries import QueryCollector, QueryBatchLimit
-from django_performance_testing.timing import TimeCollector, TimeLimit
+from django_performance_testing import core as djpt_core
+import unittest
 
 orig_get_runner = utils.get_runner
 
@@ -28,18 +29,16 @@ class DjptTestRunnerMixin(object):
         return retval
 
 
-class DjptWrappedTestSuiteAddTest(object):
-    def __init__(self, orig_suite_add_test):
-        self.orig_suite_add_test = orig_suite_add_test
-
-
-class __NeededToFindInstanceMethodType(object):
-
-    def some_method(self):
-        pass
-
-
-instancemethod = type(__NeededToFindInstanceMethodType().some_method)
+def wrap_cls_method(cls, method_name, collector_id, ctx_key, is_cls_method):
+    ctx_value = '{} ({})'.format(
+        method_name, unittest.util.strclass(cls))
+    ctx = scoped_context(key=ctx_key, value=ctx_value)
+    mcm = multi_context_manager(
+        [ctx] + list((DjptTestRunnerMixin.collectors[collector_id]))
+    )
+    wrap_cls_method_in_ctx_manager(
+        cls=cls, method_name=method_name, ctx_manager=mcm,
+        is_cls_method=is_cls_method)
 
 
 def get_runner_with_djpt_mixin(*a, **kw):
@@ -54,21 +53,44 @@ def get_runner_with_djpt_mixin(*a, **kw):
 
     def addTest(suite_self, test):
         retval = orig_suite_addTest(suite_self, test)
+        test_cls = test.__class__
         is_test = hasattr(test, '_testMethodName')
         if is_test:
-            test_method = getattr(test, test._testMethodName)
-            if isinstance(test_method, instancemethod):  # not patched yet
-                test_ctx = scoped_context(key='test name', value=str(test))
-                test_method_qcc = \
-                    DjptTestRunnerMixin.test_method_querycount_collector
-                time_ctx = DjptTestRunnerMixin.test_method_time_collector
-                BeforeAfterWrapper(
-                    test, test._testMethodName, context_manager=test_method_qcc
-                )
-                BeforeAfterWrapper(
-                    test, test._testMethodName, context_manager=time_ctx)
-                BeforeAfterWrapper(
-                    test, test._testMethodName, context_manager=test_ctx)
+            wrap_cls_method(
+                cls=test_cls,
+                method_name=test._testMethodName,
+                collector_id='test method',
+                ctx_key='test name',
+                is_cls_method=False,
+            )
+            wrap_cls_method(
+                cls=test_cls,
+                method_name='setUp',
+                collector_id='test setUp',
+                ctx_key='setUp method',
+                is_cls_method=False,
+            )
+            wrap_cls_method(
+                cls=test_cls,
+                method_name='tearDown',
+                collector_id='test tearDown',
+                ctx_key='tearDown method',
+                is_cls_method=False,
+            )
+            wrap_cls_method(
+                cls=test_cls,
+                method_name='setUpClass',
+                collector_id='test setUpClass',
+                ctx_key='setUpClass method',
+                is_cls_method=True,
+            )
+            wrap_cls_method(
+                cls=test_cls,
+                method_name='tearDownClass',
+                collector_id='test tearDownClass',
+                ctx_key='tearDownClass method',
+                is_cls_method=True,
+            )
         return retval
 
     def fn_to_id(fn):
@@ -82,13 +104,17 @@ def get_runner_with_djpt_mixin(*a, **kw):
 
 def integrate_into_django_test_runner():
     utils.get_runner = get_runner_with_djpt_mixin
-    test_method_qc_id = 'test method'
-    DjptTestRunnerMixin.test_method_querycount_collector = QueryCollector(
-        id_=test_method_qc_id)
-    DjptTestRunnerMixin.test_method_querycount_limit = QueryBatchLimit(
-        collector_id=test_method_qc_id, settings_based=True)
-
-    DjptTestRunnerMixin.test_method_time_collector = TimeCollector(
-        id_=test_method_qc_id)
-    DjptTestRunnerMixin.test_method_time_limit = TimeLimit(
-        collector_id=test_method_qc_id, settings_based=True)
+    DjptTestRunnerMixin.collectors = {}
+    DjptTestRunnerMixin.limits = {}
+    collector_ids = [
+        'test method', 'test setUp', 'test tearDown',
+        'test setUpClass', 'test tearDownClass',
+    ]
+    for collector_id in collector_ids:
+        collectors = DjptTestRunnerMixin.collectors[collector_id] = []
+        limits = DjptTestRunnerMixin.limits[collector_id] = []
+        for limit_cls in djpt_core.limits_registry.name2cls.values():
+            collector = limit_cls.collector_cls(id_=collector_id)
+            collectors.append(collector)
+            limit = limit_cls(collector_id=collector_id, settings_based=True)
+            limits.append(limit)

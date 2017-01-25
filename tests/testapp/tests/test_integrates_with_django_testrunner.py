@@ -6,8 +6,9 @@ from django_performance_testing import test_runner as djpt_test_runner_module
 from freezegun import freeze_time
 import pytest
 from testapp.test_helpers import (override_current_context,
-                                  run_testcase_with_django_runner)
+                                  run_testcases_with_django_runner)
 import unittest
+import re
 
 
 def to_dotted_name(cls):
@@ -76,42 +77,91 @@ def test_runner_sets_executing_test_method_as_context():
             assert [str(self)] == tests
 
     with override_current_context() as ctx:
-        run_testcase_with_django_runner(SomeTestCase, nr_of_tests=1)
+        run_testcases_with_django_runner(SomeTestCase, nr_of_tests=1)
 
 
-def test_number_of_queries_per_test_method_can_be_limited(db, settings):
+class FailsDbLimit(object):
+    limit_type = 'queries'
+    limit_value = 0
 
-    class ATestCase(unittest.TestCase):
-        def test_foo(self):
-            assert len(Group.objects.all()) == 0
+    def __enter__(self):
+        return self
 
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return None
+
+    def code_that_fails(self):
+        assert len(Group.objects.all()) == 0
+
+
+class FailsTimeLimit(object):
+    limit_type = 'time'
+    limit_value = 4
+
+    def __enter__(self):
+        self.freeze_ctx_mgr = freeze_time('2016-09-29 18:18:01')
+        self.frozen_time = self.freeze_ctx_mgr.__enter__()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return self.freeze_ctx_mgr.__exit__(exc_type, exc_val, exc_tb)
+
+    def code_that_fails(self):
+        self.frozen_time.tick(timedelta(seconds=5))
+
+
+@pytest.mark.parametrize(
+    'ran_test_delta,limit_name,method_name,limit_failer_cls,is_cls_fn', [
+        (1, 'test method', 'test_foo', FailsDbLimit, False),
+        (1, 'test method', 'test_foo', FailsTimeLimit, False),
+        (0, 'test setUp', 'setUp', FailsDbLimit, False),
+        (0, 'test setUp', 'setUp', FailsTimeLimit, False),
+        (0, 'test tearDown', 'tearDown', FailsDbLimit, False),
+        (0, 'test tearDown', 'tearDown', FailsTimeLimit, False),
+        (-1, 'test setUpClass', 'setUpClass', FailsDbLimit, True),
+        (-1, 'test setUpClass', 'setUpClass', FailsTimeLimit, True),
+        (0, 'test tearDownClass', 'tearDownClass', FailsDbLimit, True),
+        (0, 'test tearDownClass', 'tearDownClass', FailsTimeLimit, True),
+    ])
+def test_limits_can_be_set_on_testcase_methods(db, settings, limit_name,
+                                               ran_test_delta, method_name,
+                                               limit_failer_cls, is_cls_fn):
+    failer = limit_failer_cls()
     settings.PERFORMANCE_LIMITS = {
-        'test method': {
-            'queries': {
-                'total': 0
+        limit_name: {
+            failer.limit_type: {
+                'total': failer.limit_value
             }
         }
     }
 
-    test_run = run_testcase_with_django_runner(ATestCase, nr_of_tests=1,
-                                               all_should_pass=False)
-    assert 'LimitViolationError: ' in test_run["output"]
-
-
-def test_elapsed_time_per_test_method_can_be_limited(settings):
-    settings.PERFORMANCE_LIMITS = {
-        'test method': {
-            'time': {
-                'total': 4
-            }
-        }
-    }
-
-    with freeze_time('2016-09-29 18:18:01') as frozen_time:
+    with failer:
         class ATestCase(unittest.TestCase):
-            def test_foo(self):
-                frozen_time.tick(timedelta(seconds=5))
-        testrun = run_testcase_with_django_runner(
-            ATestCase, nr_of_tests=1, all_should_pass=False)
 
-    assert 'LimitViolationError: ' in testrun["output"]
+            def test_default(self):
+                pass
+
+            called_do_stuff = False
+
+        def do_stuff(*a, **kw):
+            ATestCase.called_do_stuff = True
+            failer.code_that_fails()
+
+        if is_cls_fn:
+            setattr(ATestCase, method_name, classmethod(do_stuff))
+        else:
+            setattr(ATestCase, method_name, do_stuff)
+        nr_of_tests = 1 + ran_test_delta
+        test_run = run_testcases_with_django_runner(
+            ATestCase, nr_of_tests=nr_of_tests,
+            all_should_pass=False)
+    assert ATestCase.called_do_stuff, test_run['output']
+    parts = test_run['output'].split('LimitViolationError: ')
+    assert len(parts) == 2, 'has LimitViolationError in the output'
+    lve_msg = parts[-1].split('FAILED (')[0].split('  File "')[0]
+    lve_msg_oneline = ''.join(lve_msg.split('\n'))
+    lve_msg = re.sub(r"'+\s+'", '', lve_msg_oneline)
+    # e.g.: Too many (1) total queries (for test method) (limit: 0) {'test name': ['test_foo (testapp.tests.test_integrates_with_django_testrunner.ATestCase)']}  # noqa: E501
+    reported_method = lve_msg.split('[')[-1].split(']')[0][1:-1]
+    assert reported_method.startswith(method_name), lve_msg
+    assert ATestCase.__name__ in reported_method, lve_msg
