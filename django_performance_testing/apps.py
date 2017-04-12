@@ -1,3 +1,4 @@
+import django
 from django.apps import AppConfig
 
 
@@ -6,6 +7,13 @@ class DjangoPerformanceTestingAppConfig(AppConfig):
     name = 'django_performance_testing'
 
     def ready(self):
+        if django.VERSION[:2] == (1, 9):
+            import warnings
+            msg = "You are using an unsupported Django version. DJPT support" \
+                  " might be dropped in any following release. See " \
+                  "https://www.djangoproject.com/download/#supported-versions"
+            warnings.warn(msg)
+
         from django_performance_testing.registry import \
             SettingsOrDefaultBasedRegistry
         from django_performance_testing import core
