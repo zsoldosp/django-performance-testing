@@ -2,12 +2,6 @@ separate data collection from reporting
 ---------------------------------------
 
 * write and test serializer of results from signal
-  * how to be sure that all result types can be used?
-    introdcue a collector method to provide sample results
-    - to be used in tests
-    - could also be used by users to test their signal handlers/reports
-    - each result is assumed to return a list of objects where each can
-      be tested through standard == equality checks
   * serializer reading back should also just fire signal results_collected
     but should have a different name to avoid problems and to be explicit
 * test that during thestrun, serializer is connected to the signal

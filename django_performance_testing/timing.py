@@ -14,6 +14,10 @@ class TimeCollector(BaseCollector):
     def get_results_to_send(self):
         return [NameValueResult(name='total', value=time() - self.start)]
 
+    @classmethod
+    def get_sample_results(cls):
+        return [0.01, 1.00, 3.2]
+
 
 class TimeLimit(BaseLimit):
     collector_cls = TimeCollector
