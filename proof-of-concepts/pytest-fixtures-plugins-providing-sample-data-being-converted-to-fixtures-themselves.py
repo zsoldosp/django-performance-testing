@@ -45,6 +45,6 @@ def sample_result(request, plugin_cls, plugin_cls_with_sample_result):
     result = plugin_cls_with_sample_result[-1]
     return result
 
+
 def test_roundtrip_serialization(sample_result):
     assert False
-
