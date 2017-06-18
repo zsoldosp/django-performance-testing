@@ -1,10 +1,25 @@
+separate data collection from reporting
+---------------------------------------
+
+* write and test serializer of results from signal
+  * serializer reading back should also just fire signal results_collected
+    but should have a different name to avoid problems and to be explicit
+* test that during thestrun, serializer is connected to the signal
+* change worst_report to use the new signal
+* assert worstreport/report is not subscribed to results_collected signal
+
+* support multiple runs generating different files and combining them
+
+* write bang_for_the_buck report on what to improve first 
+
+---------------------------------------
 use for template tags
 rename limits settings to be consistent with the DJPT_ prefix
    add deprecation warning for old style
    should I also update the tests to run both versions?
 
 future, out of scope now for registry
---------------------------------------
+---------------------------------------
 need to write settings_changed_handler too
 use it for app ready integration points, simplifying integrate_** methods
     should use runtime value of settings
