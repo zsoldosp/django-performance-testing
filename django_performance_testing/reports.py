@@ -34,6 +34,7 @@ class WorstReport(object):
             d = get_data(sender.id_, sender.type_name)
             current = d.get(name, None)
             if current is None or current.value < result:
+                # TODO: once serialization, no need to deepcopy
                 d[name] = Result(value=result, context=copy.deepcopy(context))
 
         for name, result in name_value_pairs:
