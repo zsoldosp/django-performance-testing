@@ -211,6 +211,7 @@ as the app has defaults that include all limits.
 
 Release Notes
 =============
+* 0.7.0
 
 * 0.6.1
 
