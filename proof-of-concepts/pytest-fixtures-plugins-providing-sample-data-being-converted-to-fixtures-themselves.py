@@ -37,9 +37,14 @@ def pytest_generate_tests(metafunc):
             ids=ids
         )
 
-def test_roundtrip_serialization(plugin_cls, plugin_cls_with_sample_result):
+
+@pytest.fixture
+def sample_result(request, plugin_cls, plugin_cls_with_sample_result):
     if plugin_cls != plugin_cls_with_sample_result[0]:
         pytest.skip('this sample result is not for this plugin')
-    sample_result = plugin_cls_with_sample_result[-1]
+    result = plugin_cls_with_sample_result[-1]
+    return result
+
+def test_roundtrip_serialization(sample_result):
     assert False
 
