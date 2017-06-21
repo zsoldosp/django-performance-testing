@@ -1,5 +1,5 @@
 from django.utils.six.moves import cPickle as pickle
-from django_performance_testing.signals import results_collected
+from django_performance_testing.signals import results_collected, results_read
 
 
 class Reader:
@@ -11,7 +11,10 @@ class Reader:
             data = f.read()
         if not data:
             return []
-        return pickle.loads(data)
+        deserialized = pickle.loads(data)
+        for (sender, results, context) in deserialized:
+            results_read.send(sender=sender, results=results, context=context)
+        return deserialized
 
 
 class Writer:

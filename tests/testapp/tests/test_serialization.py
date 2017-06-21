@@ -1,6 +1,6 @@
 import pytest
 from django_performance_testing import serializer
-from django_performance_testing.signals import results_collected
+from django_performance_testing.signals import results_collected, results_read
 from testapp.test_helpers import FakeSender, WithId
 
 
@@ -68,6 +68,31 @@ def test_writer_only_writes_when_end_is_called(tmpfilepath):
         writer.end()
     deserialized = reader.read_all()
     assert deserialized == [(WithId('after start'), [2], {'after': 'start'})]
+
+
+def test_read_all_fires_results_read_signals(tmpfilepath):
+    writer = serializer.Writer(tmpfilepath)
+    writer.start()
+    results_collected.send(
+        sender=WithId('after start'), results=[2],
+        context={'after': 'start'})
+    writer.end()
+    results_from_results_read_signal = []
+
+    def record_read_results(sender, results, context, **kwargs):
+        results_from_results_read_signal.append((
+            sender, results, context
+        ))
+
+    results_read.connect(record_read_results)
+    reader = serializer.Reader(tmpfilepath)
+    deserialized = reader.read_all()
+    try:
+        assert deserialized != []
+        assert results_from_results_read_signal != []
+        assert results_from_results_read_signal == deserialized
+    finally:
+        results_read.disconnect(record_read_results)
 
 
 @pytest.mark.parametrize('sender_id,sender_type', [
