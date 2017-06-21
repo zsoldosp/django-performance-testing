@@ -1,6 +1,7 @@
 import pytest
 from django_performance_testing import serializer
-from testapp.test_helpers import FakeSender
+from django_performance_testing.signals import results_collected
+from testapp.test_helpers import FakeSender, WithId
 
 
 def pytest_generate_tests(metafunc):
@@ -27,6 +28,24 @@ def sample_result(collector_cls, collector_cls_with_sample_result):
         pytest.skip('this sample result is not for this plugin')
     result = collector_cls_with_sample_result[-1]
     return result
+
+
+def test_writer_writes_collected_results_fired_between_statt_stop(tmpfilepath):
+    writer = serializer.Writer(tmpfilepath)
+    results_collected.send(
+        sender=WithId('before start'), results=[1],
+        context={'before': 'start'})
+    writer.start()
+    results_collected.send(
+        sender=WithId('after start'), results=[2],
+        context={'after': 'start'})
+    writer.end()
+    results_collected.send(
+        sender=WithId('after end'), results=[3],
+        context={'after': 'end'})
+    reader = serializer.Reader(tmpfilepath)
+    deserialized = reader.read_all()
+    assert deserialized == [(WithId('after start'), [2], {'after': 'start'})]
 
 
 @pytest.mark.parametrize('sender_id,sender_type', [

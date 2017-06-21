@@ -1,4 +1,5 @@
 from django.utils.six.moves import cPickle as pickle
+from django_performance_testing.signals import results_collected
 
 
 class Reader:
@@ -18,11 +19,15 @@ class Writer:
     def start(self):
         self.f = open(self.fpath, 'wb')
         self.data = []
+        results_collected.connect(self.handle_results_collected)
 
     def end(self):
         data = pickle.dumps(self.data, pickle.HIGHEST_PROTOCOL)
         self.f.write(data)
         self.f.close()
+
+    def handle_results_collected(self, sender, results, context, **kwargs):
+        self.handle_result(sender, results, context)
 
     def handle_result(self, sender, result, context):
         self.data.append((sender, result, context))
