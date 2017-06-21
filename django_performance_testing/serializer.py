@@ -17,7 +17,7 @@ class Writer:
         self.fpath = fpath
 
     def start(self):
-        self.f = open(self.fpath, 'wb')
+        self.f = open(self.fpath, 'wb')  # TODO: move it to end
         self.data = []
         results_collected.connect(self.handle_results_collected)
 
@@ -29,5 +29,5 @@ class Writer:
     def handle_results_collected(self, sender, results, context, **kwargs):
         self.handle_result(sender, results, context)
 
-    def handle_result(self, sender, result, context):
-        self.data.append((sender, result, context))
+    def handle_result(self, sender, results, context):
+        self.data.append((sender, results, context))
