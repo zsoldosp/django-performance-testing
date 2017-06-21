@@ -30,6 +30,15 @@ def sample_result(collector_cls, collector_cls_with_sample_result):
     return result
 
 
+def test_datafile_path_depends_on_setting(settings):
+    assert not hasattr(settings, 'DJPT_DATAFILE_PATH'), 'test assumption'
+    assert serializer.get_datafile_path() == 'djpt.results_collected'
+    settings.DJPT_DATAFILE_PATH = 'foo.log'
+    assert serializer.get_datafile_path() == 'foo.log'
+    settings.DJPT_DATAFILE_PATH = 'bar'
+    assert serializer.get_datafile_path() == 'bar'
+
+
 def test_writer_writes_collected_results_fired_between_statt_stop(tmpfilepath):
     writer = serializer.Writer(tmpfilepath)
     results_collected.send(

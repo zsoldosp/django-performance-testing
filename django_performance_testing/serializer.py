@@ -1,5 +1,15 @@
+from django.conf import settings
 from django.utils.six.moves import cPickle as pickle
 from django_performance_testing.signals import results_collected, results_read
+
+DEFAULT_DJPT_DATAFILE_PATH = 'djpt.results_collected'
+
+def get_datafile_path():
+    try:
+        return settings.DJPT_DATAFILE_PATH
+    except AttributeError:
+        return DEFAULT_DJPT_DATAFILE_PATH
+
 
 
 class Reader:
