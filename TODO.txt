@@ -5,9 +5,12 @@ separate data collection from reporting
   * serializer reading back should also just fire signal results_collected
     but should have a different name to avoid problems and to be explicit
 * test that during thestrun, serializer is connected to the signal
+* use a setting for output path
 * change worst_report to use the new signal
 * assert worstreport/report is not subscribed to results_collected signal
 * add deprecation warning for DJPT_SHOW_WORST_REPORT setting
+* make sure that the serializer copies the context dict
+* introduce a command to run/display reports and remove inlined one
 
 * support multiple runs generating different files and combining them
 
