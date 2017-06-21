@@ -48,6 +48,22 @@ def test_writer_writes_collected_results_fired_between_statt_stop(tmpfilepath):
     assert deserialized == [(WithId('after start'), [2], {'after': 'start'})]
 
 
+def test_writer_only_writes_when_end_is_called(tmpfilepath):
+    writer = serializer.Writer(tmpfilepath)
+    writer.start()
+    results_collected.send(
+        sender=WithId('after start'), results=[2],
+        context={'after': 'start'})
+    reader = serializer.Reader(tmpfilepath)
+    deserialized = reader.read_all()
+    try:
+        assert deserialized == []
+    finally:
+        writer.end()
+    deserialized = reader.read_all()
+    assert deserialized == [(WithId('after start'), [2], {'after': 'start'})]
+
+
 @pytest.mark.parametrize('sender_id,sender_type', [
         ('sender_id_1', 'sender_type_1'),
         ('sender_id_2', 'sender_type_2'),
