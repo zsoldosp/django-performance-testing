@@ -60,7 +60,8 @@ def test_roundtrip_serialization_single_results(
     }
     writer = serializer.Writer(tmpfilepath)
     writer.start()
-    writer.handle_result(sender=sender, results=sample_result, context=context)
+    results_collected.send(
+        sender=sender, results=sample_result, context=context)
     writer.end()
     reader = serializer.Reader(tmpfilepath)
     deserialized = reader.read_all()
