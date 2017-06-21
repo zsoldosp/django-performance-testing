@@ -9,6 +9,8 @@ class Reader:
     def read_all(self):
         with open(self.fpath, 'rb') as f:
             data = f.read()
+        if not data:
+            return []
         return pickle.loads(data)
 
 
