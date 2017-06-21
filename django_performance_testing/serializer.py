@@ -24,5 +24,5 @@ class Writer:
         self.f.write(data)
         self.f.close()
 
-    def handle_result(self, sender, result):
-        self.data.append((sender, result))
+    def handle_result(self, sender, result, context):
+        self.data.append((sender, result, context))

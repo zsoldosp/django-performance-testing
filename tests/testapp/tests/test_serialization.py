@@ -33,13 +33,16 @@ def sample_result(collector_cls, collector_cls_with_sample_result):
         ('sender_id_1', 'sender_type_1'),
         ('sender_id_2', 'sender_type_2'),
     ])
-def test_roundtrip_serialization(
+def test_roundtrip_serialization_single_results(
         tmpfilepath, sender_id, sender_type, sample_result):
     sender = FakeSender(id_=sender_id, type_name=sender_type)
+    context = {
+        'setUp method': ['setUp (some.module.TestCase'],
+    }
     writer = serializer.Writer(tmpfilepath)
     writer.start()
-    writer.handle_result(sender=sender, result=sample_result)
+    writer.handle_result(sender=sender, result=sample_result, context=context)
     writer.end()
     reader = serializer.Reader(tmpfilepath)
     deserialized = reader.read_all()
-    assert deserialized == [(sender, sample_result)]
+    assert deserialized == [(sender, sample_result, context)]
