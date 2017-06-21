@@ -3,6 +3,7 @@ from django.contrib.auth.models import Group
 from django.test.utils import get_runner
 from django.utils import six
 from django_performance_testing import test_runner as djpt_test_runner_module
+from django_performance_testing.serializer import Reader
 from freezegun import freeze_time
 import pytest
 from testapp.test_helpers import (override_current_context,
@@ -78,6 +79,22 @@ def test_runner_sets_executing_test_method_as_context():
 
     with override_current_context() as ctx:
         run_testcases_with_django_runner(SomeTestCase, nr_of_tests=1)
+
+
+def test_collected_results_serialized_to_settings_based_filename(settings, tmpfilepath):
+
+    class SomeTestCase(unittest.TestCase):
+        def test_foo(self):
+            assert 'test name' in ctx.data, ctx.data.keys()
+            tests = ctx.data['test name']
+            assert len(tests) == 1
+            assert [str(self)] == tests
+
+    settings.DJPT_DATAFILE_PATH = tmpfilepath
+    with override_current_context() as ctx:
+        run_testcases_with_django_runner(SomeTestCase, nr_of_tests=1)
+    reader = Reader(settings.DJPT_DATAFILE_PATH)
+    assert [] != reader.read_all()
 
 
 class FailsDbLimit(object):

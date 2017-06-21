@@ -1,6 +1,7 @@
 # TODO: app.ready happens before the command is imported - how to test?
 from django.conf import settings
 from django.test import utils
+from django_performance_testing.serializer import Writer
 from django_performance_testing.reports import WorstReport
 from django_performance_testing.utils import \
     multi_context_manager, wrap_cls_method_in_ctx_manager
@@ -23,7 +24,13 @@ class DjptTestRunnerMixin(object):
             need to override run() to print things after
         """
         self.djpt_worst_report = WorstReport()
+        datafile_path = getattr(settings, 'DJPT_DATAFILE_PATH', None)
+        if datafile_path:
+            self.djpt_writer = Writer(datafile_path)
+            self.djpt_writer.start()
         retval = super(DjptTestRunnerMixin, self).run(*a, **kw)
+        if datafile_path:
+            self.djpt_writer.end()
         if getattr(settings, 'DJPT_PRINT_WORST_REPORT', True):
             self.djpt_worst_report.render(self.stream)
         return retval
