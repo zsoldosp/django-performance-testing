@@ -19,14 +19,14 @@ class Writer:
         self.fpath = fpath
 
     def start(self):
-        self.f = open(self.fpath, 'wb')  # TODO: move it to end
         self.data = []
         results_collected.connect(self.handle_results_collected)
 
     def end(self):
         data = pickle.dumps(self.data, pickle.HIGHEST_PROTOCOL)
-        self.f.write(data)
-        self.f.close()
+        # TODO: couldn't write a test to verify file is opened only here
+        with open(self.fpath, 'wb') as f:
+            f.write(data)
 
     def handle_results_collected(self, sender, results, context, **kwargs):
         self.handle_result(sender, results, context)
