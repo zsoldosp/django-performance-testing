@@ -23,6 +23,7 @@ class Writer:
         results_collected.connect(self.handle_results_collected)
 
     def end(self):
+        results_collected.disconnect(self.handle_results_collected)
         data = pickle.dumps(self.data, pickle.HIGHEST_PROTOCOL)
         # TODO: couldn't write a test to verify file is opened only here
         with open(self.fpath, 'wb') as f:

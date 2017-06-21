@@ -46,6 +46,12 @@ def test_writer_writes_collected_results_fired_between_statt_stop(tmpfilepath):
     reader = serializer.Reader(tmpfilepath)
     deserialized = reader.read_all()
     assert deserialized == [(WithId('after start'), [2], {'after': 'start'})]
+    writer.end()  # dump daa again
+    reader = serializer.Reader(tmpfilepath)
+    deserialized = reader.read_all()
+    assert deserialized == \
+        [(WithId('after start'), [2], {'after': 'start'})], \
+        'after first writer.end it should have disonnected the signal'
 
 
 def test_writer_only_writes_when_end_is_called(tmpfilepath):
