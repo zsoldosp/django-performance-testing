@@ -212,6 +212,12 @@ as the app has defaults that include all limits.
 Release Notes
 =============
 * 0.7.0
+  
+  * backwards incompatibe changes:
+
+    * Collectors are expected to have ``get_sample_results`` method to allow easier and 
+      more realistic testing
+
 
 * 0.6.1
 
