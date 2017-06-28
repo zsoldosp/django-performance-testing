@@ -32,10 +32,15 @@ def packaged_runner(db):
     return get_packaged_runner_with_options
 
 
-def test_report_is_printed_after_test_is_run(packaged_runner):
+def test_notice_is_printed_on_how_to_get_the_worst_report_after_test_run(
+        packaged_runner, settings):
+    settings.DJPT_PRINT_WORST_REPORT = True
     test_run = packaged_runner()
     report = get_report_text()
-    assert test_run["output"].endswith(report)
+    assert not test_run["output"].endswith(report)
+    notice = 'To see the Worst Performing Items report, ' \
+             'run manage.py djpt_worst_report'
+    assert notice in test_run["output"]
 
 
 def test_no_report_is_printed_with_print_report_set_to_false(

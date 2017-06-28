@@ -1,5 +1,4 @@
 # TODO: app.ready happens before the command is imported - how to test?
-from django.core.management import call_command
 from django.conf import settings
 from django.test import utils
 from django_performance_testing.serializer import \
@@ -30,7 +29,9 @@ class DjptTestRunnerMixin(object):
         retval = super(DjptTestRunnerMixin, self).run(*a, **kw)
         self.djpt_writer.end()
         if getattr(settings, 'DJPT_PRINT_WORST_REPORT', True):
-            call_command('djpt_worst_report', stdout=self.stream)
+            self.stream.write(
+                'To see the Worst Performing Items report, '
+                'run manage.py djpt_worst_report')
         return retval
 
 
