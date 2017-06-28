@@ -1,6 +1,6 @@
 from django.contrib.auth.models import Group
 from django_performance_testing.reports import WorstReport
-from django_performance_testing.signals import results_collected
+from django_performance_testing.signals import results_read
 from testapp.test_helpers import WithId, run_testcases_with_django_runner
 import pytest
 import unittest
@@ -11,12 +11,12 @@ def packaged_runner(db):
     class SampleTestCase(unittest.TestCase):
 
         def test_whatever_one(self):
-            results_collected.send(
+            results_read.send(
                 sender=WithId('whatever'), results=[1],
                 context={'test': 'one'})
 
         def test_whatever_two(self):
-            results_collected.send(
+            results_read.send(
                 sender=WithId('whatever'), results=[2],
                 context={'test': 'two'})
 

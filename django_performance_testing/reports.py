@@ -1,6 +1,6 @@
 import copy
 from django.utils import six
-from django_performance_testing.signals import results_collected
+from django_performance_testing.signals import results_read
 import pprint
 
 
@@ -16,7 +16,7 @@ class Result(object):
 class WorstReport(object):
 
     def __init__(self):
-        results_collected.connect(self.handle_results_collected)
+        results_read.connect(self.handle_results_collected)
         self.data = {}
 
     def handle_results_collected(self, signal, sender, results, context, **kw):
