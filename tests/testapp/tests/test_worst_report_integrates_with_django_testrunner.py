@@ -1,6 +1,8 @@
 from django.contrib.auth.models import Group
-from django_performance_testing.reports import WorstReport
-from django_performance_testing.signals import results_read
+from django.utils import six
+from django_performance_testing.management.commands.djpt_worst_report \
+    import Command as WorstReportCommand
+from django_performance_testing.signals import results_collected
 from testapp.test_helpers import WithId, run_testcases_with_django_runner
 import pytest
 import unittest
@@ -11,12 +13,12 @@ def packaged_runner(db):
     class SampleTestCase(unittest.TestCase):
 
         def test_whatever_one(self):
-            results_read.send(
+            results_collected.send(
                 sender=WithId('whatever'), results=[1],
                 context={'test': 'one'})
 
         def test_whatever_two(self):
-            results_read.send(
+            results_collected.send(
                 sender=WithId('whatever'), results=[2],
                 context={'test': 'two'})
 
@@ -30,15 +32,10 @@ def packaged_runner(db):
     return get_packaged_runner_with_options
 
 
-def test_runner_has_worst_report_attribute(packaged_runner):
-    test_run = packaged_runner()
-    assert isinstance(test_run["runner"].djpt_worst_report, WorstReport)
-
-
 def test_report_is_printed_after_test_is_run(packaged_runner):
     test_run = packaged_runner()
-    assert test_run["output"].endswith(
-        test_run["runner"].djpt_worst_report.rendered())
+    report = get_report_text()
+    assert test_run["output"].endswith(report)
 
 
 def test_no_report_is_printed_with_print_report_set_to_false(
@@ -66,4 +63,16 @@ def get_report_value_for(test_run, heading, item_name):
 
 
 def get_report_data(test_run):
-    return test_run["runner"].djpt_worst_report.data
+    cmd = get_command_after_run()
+    return cmd.report.data
+
+
+def get_report_text():
+    cmd = get_command_after_run()
+    return cmd.stdout.getvalue()
+
+
+def get_command_after_run():
+    cmd = WorstReportCommand(stdout=six.StringIO())
+    cmd.handle()
+    return cmd
