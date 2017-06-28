@@ -81,7 +81,8 @@ def test_runner_sets_executing_test_method_as_context():
         run_testcases_with_django_runner(SomeTestCase, nr_of_tests=1)
 
 
-def test_collected_results_serialized_to_settings_based_filename(settings, tmpfilepath):
+def test_collected_results_serialized_to_settings_based_filename(
+        settings, tmpfilepath):
 
     class SomeTestCase(unittest.TestCase):
         def test_foo(self):
