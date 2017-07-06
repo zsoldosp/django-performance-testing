@@ -55,7 +55,7 @@ def test_writer_writes_collected_results_fired_between_statt_stop(tmpfilepath):
     reader = serializer.Reader(tmpfilepath)
     deserialized = reader.read_all()
     assert deserialized == [(WithId('after start'), [2], {'after': 'start'})]
-    writer.end()  # dump daa again
+    writer.end()  # dump data again
     reader = serializer.Reader(tmpfilepath)
     deserialized = reader.read_all()
     assert deserialized == \
