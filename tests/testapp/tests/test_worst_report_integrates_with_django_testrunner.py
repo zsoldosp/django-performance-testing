@@ -1,5 +1,7 @@
 from django.contrib.auth.models import Group
-from django_performance_testing.reports import WorstReport
+from django.utils import six
+from django_performance_testing.management.commands.djpt_worst_report \
+    import Command as WorstReportCommand
 from django_performance_testing.signals import results_collected
 from testapp.test_helpers import WithId, run_testcases_with_django_runner
 import pytest
@@ -30,15 +32,15 @@ def packaged_runner(db):
     return get_packaged_runner_with_options
 
 
-def test_runner_has_worst_report_attribute(packaged_runner):
+def test_notice_is_printed_on_how_to_get_the_worst_report_after_test_run(
+        packaged_runner, settings):
+    settings.DJPT_PRINT_WORST_REPORT = True
     test_run = packaged_runner()
-    assert isinstance(test_run["runner"].djpt_worst_report, WorstReport)
-
-
-def test_report_is_printed_after_test_is_run(packaged_runner):
-    test_run = packaged_runner()
-    assert test_run["output"].endswith(
-        test_run["runner"].djpt_worst_report.rendered())
+    report = get_report_text()
+    assert not test_run["output"].endswith(report)
+    notice = 'To see the Worst Performing Items report, ' \
+             'run manage.py djpt_worst_report'
+    assert notice in test_run["output"]
 
 
 def test_no_report_is_printed_with_print_report_set_to_false(
@@ -66,4 +68,16 @@ def get_report_value_for(test_run, heading, item_name):
 
 
 def get_report_data(test_run):
-    return test_run["runner"].djpt_worst_report.data
+    cmd = get_command_after_run()
+    return cmd.report.data
+
+
+def get_report_text():
+    cmd = get_command_after_run()
+    return cmd.stdout.getvalue()
+
+
+def get_command_after_run():
+    cmd = WorstReportCommand(stdout=six.StringIO())
+    cmd.handle()
+    return cmd

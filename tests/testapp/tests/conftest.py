@@ -1,3 +1,5 @@
+import os
+import tempfile
 import pytest
 from django_performance_testing.queries import QueryCollector, QueryBatchLimit
 from django_performance_testing.timing import TimeCollector, TimeLimit
@@ -27,3 +29,11 @@ def limit_cls_and_name_to_id(fixture_value):
     ], ids=limit_cls_and_name_to_id)
 def limit_cls_and_name(request):
     yield request.param
+
+
+@pytest.fixture
+def tmpfilepath():
+    fd, fname = tempfile.mkstemp(prefix='djpt-test-')
+    os.close(fd)
+    yield fname
+    os.remove(fname)

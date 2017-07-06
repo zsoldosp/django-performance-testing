@@ -104,6 +104,11 @@ class TestCollectors(object):
         finally:
             results_collected.disconnect(failing_signal_handler)
 
+    def test_has_a_method_providing_sample_result(self, collector_cls):
+        sample_results = collector_cls.get_sample_results()
+        assert isinstance(sample_results, list)
+        assert len(sample_results) > 0
+
 
 class TestLimits(object):
     def test_limit_knows_its_collector(self, limit_cls):

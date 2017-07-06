@@ -42,16 +42,13 @@ Usage
 * set your limits (see below for detail)
 * and run your test ``manage.py test <your app>``
 
-For any limit violations, there will be a test failure, and at the end, a
-`Worst Items Report` will be printed (unless supressed by
-``settins.DJPT_PRINT_WORST_REPORT = False``). If it is desired to control
-this behavior from the command line, the recommendation is to define it
-through environmnet variables (a'la
-`12 factor <https://12factor.net/config>`_), i.e.:
+For any limit violations, there will be a test failure.
 
- * in ``settings.py``, ``DJPT_PRINT_WORST_REPORT = bool(int(os.environ.get('DJPT_PRINT_WORST_REPORT',  '1')))``
- * from the command line, run the tests like
-   ``DJPT_PRINT_WORST_REPORT=0 manage.py test <your app>``
+After the test run, you could generate the `Worst Items Report`
+by running ``manage.py djpt_worst_report``.
+
+The data is collected into ``settings.DJPT_DATAFILE_PATH`` file,
+or into ``djpt.results_collected``.
 
 
 Supported Limits
@@ -211,6 +208,18 @@ as the app has defaults that include all limits.
 
 Release Notes
 =============
+* 0.7.0 - separate data collection and reporting
+
+  * introduce ``djpt_worst_report`` management command
+
+  * backwards incompatibe changes:
+
+    * Collectors are expected to have ``get_sample_results`` method to allow easier and 
+      more realistic testing
+    * Worst Items Report is not printed anymore after the test run.
+    * ``settings.DJPT_PRINT_WORST_REPORT`` doesn't have much effect anymore, will be
+      dropped in a subsequent release
+
 
 * 0.6.1
 

@@ -1,3 +1,4 @@
+import random
 from django.db import connection
 from django.utils import six
 from django_performance_testing.signals import before_clearing_queries_log
@@ -61,6 +62,30 @@ class QueryCollector(BaseCollector):
         return list(
             QueryCountResult(name=tp, queries=q)
             for (tp, q) in six.iteritems(by_type))
+
+    @classmethod
+    def get_sample_results(cls):
+        read = """QUERY - 'SELECT "auth_user"."id" FROM "auth_group"'""" \
+            """- PARAMS = ()"""
+        write = """QUERY - 'UPDATE "auth_group" SET "name" = %s'""" \
+            """- PARAMS = ('bar',)"""
+        other = """QUERY - 'BEGIN TRANSACTION' - PARAMS = ()"""
+
+        def to_query(sql):
+            return {'sql': sql, 'time': '%.3f' % random.random()}
+
+        def to_single_result(*sqls):
+            qc = cls()
+            qc.queries = [to_query(sql) for sql in sqls]
+            return qc.get_results_to_send()
+
+        return [
+            to_single_result(*sqls)
+            for sqls in [
+                [read], [read, write], [read, read], [write, write],
+                [other, other], [read, write, other]
+            ]
+        ]
 
     def store_queries(self):
         self.queries += connection.queries[self.nr_of_queries_when_entering:]

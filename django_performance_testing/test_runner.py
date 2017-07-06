@@ -1,7 +1,8 @@
 # TODO: app.ready happens before the command is imported - how to test?
 from django.conf import settings
 from django.test import utils
-from django_performance_testing.reports import WorstReport
+from django_performance_testing.serializer import \
+    Writer, get_datafile_path
 from django_performance_testing.utils import \
     multi_context_manager, wrap_cls_method_in_ctx_manager
 from django_performance_testing.context import scoped_context
@@ -22,10 +23,15 @@ class DjptTestRunnerMixin(object):
             as self.stopTestRun is ran before the actual results were printed,
             need to override run() to print things after
         """
-        self.djpt_worst_report = WorstReport()
+        datafile_path = get_datafile_path()
+        self.djpt_writer = Writer(datafile_path)
+        self.djpt_writer.start()
         retval = super(DjptTestRunnerMixin, self).run(*a, **kw)
+        self.djpt_writer.end()
         if getattr(settings, 'DJPT_PRINT_WORST_REPORT', True):
-            self.djpt_worst_report.render(self.stream)
+            self.stream.write(
+                'To see the Worst Performing Items report, '
+                'run manage.py djpt_worst_report')
         return retval
 
 

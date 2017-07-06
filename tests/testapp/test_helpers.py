@@ -9,10 +9,8 @@ from django_performance_testing.signals import results_collected
 FakeSender = namedtuple('FakeSender', ('id_', 'type_name'))
 
 
-class WithId(FakeSender):
-
-    def __new__(cls, id_):
-        return super(WithId, cls).__new__(cls, id_, 'type name')
+def WithId(id_):
+    return FakeSender(id_, 'type name')
 
 
 class RunnerTestCasePackage(object):

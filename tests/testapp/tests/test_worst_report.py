@@ -2,21 +2,21 @@ import pytest
 from django.utils import six
 from django_performance_testing.core import NameValueResult
 from django_performance_testing.reports import WorstReport, Result
-from django_performance_testing.signals import results_collected
+from django_performance_testing.signals import results_read
 from testapp.test_helpers import WithId, FakeSender
 
 
 def test_has_worst_value_and_its_context():
     report = WorstReport()
-    results_collected.send(
+    results_read.send(
         sender=WithId('id'), results=[4], context={'first': 'context'})
     assert len(report.data) == 1
     assert (4, {'first': 'context'}) == get_value_and_context(report, 'id')
-    results_collected.send(
+    results_read.send(
         sender=WithId('id'), results=[7], context={'2nd': 'context'})
     assert len(report.data) == 1
     assert (7, {'2nd': 'context'}) == get_value_and_context(report, 'id')
-    results_collected.send(
+    results_read.send(
         sender=WithId('id'), results=[5], context={'3rd': 'context'})
     assert len(report.data) == 1
     assert (7, {'2nd': 'context'}) == get_value_and_context(report, 'id')
@@ -25,7 +25,7 @@ def test_has_worst_value_and_its_context():
 def test_has_copy_of_the_context():
     report = WorstReport()
     sent_context = {'sent': 'context'}
-    results_collected.send(
+    results_read.send(
         sender=WithId('foo'), results=[4], context=sent_context)
     assert len(report.data) == 1
     r_val, r_context = get_value_and_context(report, 'foo')
@@ -37,9 +37,9 @@ def test_has_copy_of_the_context():
 
 def test_handles_multiple_sender_ids_as_separate_items():
     report = WorstReport()
-    results_collected.send(
+    results_read.send(
         sender=WithId('id one'), results=['a'], context={'context': 'one'})
-    results_collected.send(
+    results_read.send(
         sender=WithId('id two'), results=['z'], context={'context': 'two'})
     assert len(report.data) == 2
     assert ('a', {'context': 'one'}) == get_value_and_context(report, 'id one')
