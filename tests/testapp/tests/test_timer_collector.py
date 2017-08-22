@@ -12,4 +12,4 @@ def test_captures_and_measures_elapsed_time(seconds):
             with TimeCollector():
                 frozen_time.tick(timedelta(seconds=seconds))
     assert len(captured.calls) == 1
-    assert pytest.approx(seconds) == captured.calls[0]['results']
+    assert pytest.approx(seconds) == captured.calls[0]['results'][0].value
