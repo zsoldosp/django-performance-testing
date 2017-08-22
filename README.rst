@@ -208,6 +208,8 @@ as the app has defaults that include all limits.
 
 Release Notes
 =============
+
+* 0.7.1 - bugfix a test
 * 0.7.0 - separate data collection and reporting
 
   * introduce ``djpt_worst_report`` management command
