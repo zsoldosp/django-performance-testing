@@ -26,7 +26,7 @@ class multi_context_manager(object):
         if self.next_:
             try:
                 self.next_.__enter__()
-            except:
+            except:  # noqa: E722
                 self._print('exiting...')
                 self.head_manager.__exit__(*sys.exc_info())
                 self._print('... exited')
