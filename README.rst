@@ -2,10 +2,16 @@
 Django Performance Testing
 ==========================
 
+
+:WARNING:
+       This project is currently frozen and will not longer be maintained. If there is someone interested in continuing to maintain this project please contact: security@paessler.com .  
+
+
 .. image:: https://travis-ci.org/PaesslerAG/django-performance-testing.svg?branch=master
         :target: https://travis-ci.org/PaesslerAG/django-performance-testing
 
 .. contents:: Performance testing for Django through your automated tests!
+
 
 Don't wait with performance testing until the end of the project! We have learned
 already that more frequent feedback on smaller chunks of changes is much better,
