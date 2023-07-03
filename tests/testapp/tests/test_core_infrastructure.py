@@ -76,8 +76,8 @@ class TestCollectors(object):
         listeners = [
             first_attached_handler, second_handler_that_will_fail,
             last_attached_handler]
-        for l in listeners:
-            results_collected.connect(l)
+        for listener in listeners:
+            results_collected.connect(listener)
         try:
             with pytest.raises(MyException) as excinfo:
                 with collector:
@@ -88,8 +88,8 @@ class TestCollectors(object):
             assert first_attached_handler.called
             assert last_attached_handler.called
         finally:
-            for l in listeners:
-                results_collected.disconnect(l)
+            for listener in listeners:
+                results_collected.disconnect(listener)
 
     def test_signal_handler_error_doesnt_hide_orig_error(self, collector_cls):
         collector = collector_cls()
