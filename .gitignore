@@ -43,3 +43,6 @@ output/*/index.html
 docs/_build
 readme-errors
 djpt.results_collected
+
+# Virtual env supports
+.python-version
